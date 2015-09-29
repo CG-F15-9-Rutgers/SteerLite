@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <math.h>  
 #include <util/Geometry.h>
 #include <util/Curve.h>
 #include <util/Color.h>
@@ -62,18 +63,16 @@ void Curve::drawCurve(Color curveColor, float curveThickness, int window)
 #endif
 }
 
+//Function to compare two CurvePoints based on its time element
+bool SortByTime(CurvePoint& p1, CurvePoint& p2) 
+{
+	return p1.time < p2.time;
+}
 // Sort controlPoints vector in ascending order: min-first
 void Curve::sortControlPoints()
 {
-	//================DELETE THIS PART AND THEN START CODING===================
-	static bool flag = false;
-	if (!flag)
-	{
-		std::cerr << "ERROR>>>>Member function sortControlPoints is not implemented!" << std::endl;
-		flag = true;
-	}
-	//=========================================================================
 
+	std::sort(controlPoints.begin(),controlPoints.end(),SortByTime);
 	return;
 }
 
@@ -109,56 +108,70 @@ bool Curve::calculatePoint(Point& outputPoint, float time)
 // Check Roboustness
 bool Curve::checkRobust()
 {
-	//================DELETE THIS PART AND THEN START CODING===================
-	static bool flag = false;
-	if (!flag)
+	
+	if (controlPoints.size() > 1)
 	{
-		std::cerr << "ERROR>>>>Member function checkRobust is not implemented!" << std::endl;
-		flag = true;
+		return true;
 	}
-	//=========================================================================
-
-
-	return true;
+	else
+	{
+		return false;
+	}
+	
 }
 
 // Find the current time interval (i.e. index of the next control point to follow according to current time)
 bool Curve::findTimeInterval(unsigned int& nextPoint, float time)
 {
-	//================DELETE THIS PART AND THEN START CODING===================
-	static bool flag = false;
-	if (!flag)
+
+	for(int i = 0; i<controlPoints.size(); i++)
 	{
-		std::cerr << "ERROR>>>>Member function findTimeInterval is not implemented!" << std::endl;
-		flag = true;
+		if (controlPoints[i].time > time)
+		{
+			nextPoint = i;
+			return true;
+		}
 	}
-	//=========================================================================
 
 
-	return true;
+	return false;
 }
 
 // Implement Hermite curve
 Point Curve::useHermiteCurve(const unsigned int nextPoint, const float time)
 {
 	Point newPosition;
-	float normalTime, intervalTime;
-
-	//================DELETE THIS PART AND THEN START CODING===================
-	static bool flag = false;
-	if (!flag)
-	{
-		std::cerr << "ERROR>>>>Member function useHermiteCurve is not implemented!" << std::endl;
-		flag = true;
-	}
-	//=========================================================================
-
+	float normalTime, intervalTime, PositionX, PositionY, PositionZ;
+	float FirstX, SecondX, ThirdX, FourthX, FirstY, SecondY, ThirdY, FourthY;
+	float FirstZ, SecondZ, ThirdZ, FourthZ;
 
 	// Calculate time interval, and normal time required for later curve calculations
-
+	intervalTime = controlPoints[nextPoint].time - controlPoints[nextPoint-1].time;
+	normalTime = (time - controlPoints[nextPoint-1].time)/(intervalTime);
+	
 	// Calculate position at t = time on Hermite curve
-
+	FirstX = (2*pow(normalTime,3) - 3*pow(normalTime,2) + 1)*controlPoints[nextPoint-1].position.x;
+	SecondX = (pow(normalTime,3) - 2* pow(normalTime,2) + normalTime)*controlPoints[nextPoint-1].tangent.x;
+	ThirdX = (-2*pow(normalTime,3) + 3*pow(normalTime,2))*controlPoints[nextPoint].position.x;
+	FourthX = (pow(normalTime,3) - pow(normalTime,2)) * controlPoints[nextPoint].tangent.x;
+	
+	PositionX = FirstX + SecondX + ThirdX + FourthX;
+	
+	FirstY = (2*pow(normalTime,3) - 3*pow(normalTime,2) + 1)*controlPoints[nextPoint-1].position.y;
+	SecondY = (pow(normalTime,3) - 2* pow(normalTime,2) + normalTime)*controlPoints[nextPoint-1].tangent.y;
+	ThirdY = (-2*pow(normalTime,3) + 3*pow(normalTime,2))*controlPoints[nextPoint].position.y;
+	FourthY = (pow(normalTime,3) - pow(normalTime,2)) * controlPoints[nextPoint].tangent.y;
+	
+	PositionY = FirstY + SecondY + ThirdY + FourthY;
+	
+	FirstZ = (2*pow(normalTime,3) - 3*pow(normalTime,2) + 1)*controlPoints[nextPoint-1].position.z;
+	SecondZ = (pow(normalTime,3) - 2* pow(normalTime,2) + normalTime)*controlPoints[nextPoint-1].tangent.z;
+	ThirdZ = (-2*pow(normalTime,3) + 3*pow(normalTime,2))*controlPoints[nextPoint].position.z;
+	FourthZ = (pow(normalTime,3) - pow(normalTime,2)) * controlPoints[nextPoint].tangent.z;
+	
+	PositionZ = FirstZ + SecondZ + ThirdZ + FourthZ;
 	// Return result
+	newPosition = Point(PositionX,PositionY,PositionZ);
 	return newPosition;
 }
 
