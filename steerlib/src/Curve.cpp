@@ -45,19 +45,53 @@ void Curve::addControlPoints(const std::vector<CurvePoint>& inputPoints)
 void Curve::drawCurve(Color curveColor, float curveThickness, int window)
 {
 #ifdef ENABLE_GUI
-
-	//================DELETE THIS PART AND THEN START CODING===================
-	static bool flag = false;
-	if (!flag)
-	{
-		std::cerr << "ERROR>>>>Member function drawCurve is not implemented!" << std::endl;
-		flag = true;
-	}
-	//=========================================================================
-
+	
 	// Robustness: make sure there is at least two control point: start and end points
-
+	if(checkRobust())
+	{
+		std::cerr << "Error: DrawCurve does not have more than 2 points" << std::endl;
+	}
+	
 	// Move on the curve from t=0 to t=finalPoint, using window as step size, and linearly interpolate the curve points
+	float TimeInterval, deltaTime, StartTime, EndTime;
+	Point EndPoint;
+	Point StartPoint;
+	unsigned int CurrentIndex;
+	for(unsigned int i = 1; i < controlPoints.size(); i++)
+	{
+		TimeInterval = controlPoints[i].time - controlPoints[i-1].time;
+		deltaTime = TimeInterval/(float)window;
+		StartTime = controlPoints[i-1].time;
+		EndTime = controlPoints[i].time;
+		CurrentIndex = i;
+		StartPoint = controlPoints[i].position;
+		for(float CurrTime = StartTime; CurrTime <= EndTime; CurrTime = CurrTime + deltaTime)
+		{
+			
+			if (type == hermiteCurve)
+			{
+				EndPoint = useHermiteCurve(CurrentIndex, CurrTime);
+			}
+			else if (type == catmullCurve)
+			{
+				EndPoint = useCatmullCurve(CurrentIndex, CurrTime);
+			}
+			
+			
+			DrawLib::drawLine(StartPoint,EndPoint,curveColor,curveThickness);
+			
+		}
+		
+		
+		
+		
+	}
+	
+	
+
+	
+
+	
 	
 	return;
 #endif
