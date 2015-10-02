@@ -166,7 +166,7 @@ bool Curve::checkRobust()
 	}
 	else if (type == catmullCurve)
 	{
-		if (controlPoints.size() > 3)
+		if (controlPoints.size() >= 3)
 		{
 			return true;
 		}
