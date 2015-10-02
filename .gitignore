@@ -1,0 +1,15 @@
+*.o
+*.so
+*.a
+*.in
+
+external/glfw/config.log
+*.x11
+build/bin
+*/build/deps
+
+steersim
+steerbench
+steertool
+
+*.swp
