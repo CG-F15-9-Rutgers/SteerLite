@@ -104,11 +104,17 @@ bool SortByTime(CurvePoint& p1, CurvePoint& p2)
 {
 	return p1.time < p2.time;
 }
+//Function to check for time duplicates on two CurvePoints
+bool CheckEquals(CurvePoint& p1, CurvePoint& p2) 
+{
+	return p1.time == p2.time;
+}
 // Sort controlPoints vector in ascending order: min-first
 void Curve::sortControlPoints()
 {
 
 	std::sort(controlPoints.begin(),controlPoints.end(),SortByTime);
+	controlPoints.erase(unique(controlPoints.begin(),controlPoints.end(),CheckEquals),controlPoints.end());
 	return;
 }
 
