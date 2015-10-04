@@ -108,15 +108,17 @@ void Curve::sortControlPoints()
 bool Curve::calculatePoint(Point& outputPoint, float time)
 {
 	// Robustness: make sure there is at least two control point: start and end points
-	if (!checkRobust())
+	if (!checkRobust()) {
 		return false;
+	}
 
 	// Define temporary parameters for calculation
 	unsigned int nextPoint;
 
 	// Find the current interval in time, supposing that controlPoints is sorted (sorting is done whenever control points are added)
-	if (!findTimeInterval(nextPoint, time))
+	if (!findTimeInterval(nextPoint, time)) {
 		return false;
+	}
 
 	// Calculate position at t = time on curve
 	if (type == hermiteCurve)
@@ -128,7 +130,6 @@ bool Curve::calculatePoint(Point& outputPoint, float time)
 		outputPoint = useCatmullCurve(nextPoint, time);
 	}
 
-	// Return
 	return true;
 }
 
@@ -161,42 +162,36 @@ bool Curve::findTimeInterval(unsigned int& nextPoint, float time)
 	return false;
 }
 
+float Curve::hermiteCurve1D(const unsigned int nextPoint, const float time, const unsigned int dimension) {
+	// Calculate time interval, and normal time required for later curve calculations
+	float intervalTime = controlPoints[nextPoint].time - controlPoints[nextPoint-1].time;
+	float deltaTime = time - controlPoints[nextPoint-1].time;
+	float normalTime = deltaTime / (intervalTime);
+
+	// Calculate position at t = time on Hermite curve
+	// (2t^3 - 3t^2 + 1)*p0
+	float firstTerm = (2*pow(normalTime,3) - 3*pow(normalTime,2) + 1)*controlPoints[nextPoint-1].position[dimension];
+	// (t^3 - 2t^2 + t)*m0
+	float secondTerm = (pow(normalTime,3) - 2* pow(normalTime,2) + normalTime)*controlPoints[nextPoint-1].tangent[dimension]*deltaTime;
+	// (-2t^3 + 3t^2)*p1
+	float thirdTerm = (-2*pow(normalTime,3) + 3*pow(normalTime,2))*controlPoints[nextPoint].position[dimension];
+	// (t^3 - t^2)*m1
+	float fourthTerm = (pow(normalTime,3) - pow(normalTime,2)) * controlPoints[nextPoint].tangent[dimension]*deltaTime;
+
+	return firstTerm + secondTerm + thirdTerm + fourthTerm;
+}
+
 // Implement Hermite curve
 Point Curve::useHermiteCurve(const unsigned int nextPoint, const float time)
 {
 	Point newPosition;
-	float normalTime, intervalTime, ChangeInTime, PositionX, PositionY, PositionZ;
-	float FirstX, SecondX, ThirdX, FourthX, FirstY, SecondY, ThirdY, FourthY;
-	float FirstZ, SecondZ, ThirdZ, FourthZ;
+	float PositionX, PositionY, PositionZ;
 
-	// Calculate time interval, and normal time required for later curve calculations
-	intervalTime = controlPoints[nextPoint].time - controlPoints[nextPoint-1].time;
-	normalTime = (time - controlPoints[nextPoint-1].time)/(intervalTime);
-	ChangeInTime = time - controlPoints[nextPoint-1].time;
+	PositionX = hermiteCurve1D(nextPoint, time, 0);
+	PositionY = hermiteCurve1D(nextPoint, time, 1);
+	PositionZ = hermiteCurve1D(nextPoint, time, 2);
 
-	// Calculate position at t = time on Hermite curve
-	FirstX = (2*pow(normalTime,3) - 3*pow(normalTime,2) + 1)*controlPoints[nextPoint-1].position.x;
-	SecondX = (pow(normalTime,3) - 2* pow(normalTime,2) + normalTime)*controlPoints[nextPoint-1].tangent.x*ChangeInTime;
-	ThirdX = (-2*pow(normalTime,3) + 3*pow(normalTime,2))*controlPoints[nextPoint].position.x;
-	FourthX = (pow(normalTime,3) - pow(normalTime,2)) * controlPoints[nextPoint].tangent.x*ChangeInTime;
-
-	PositionX = FirstX + SecondX + ThirdX + FourthX;
-
-	FirstY = (2*pow(normalTime,3) - 3*pow(normalTime,2) + 1)*controlPoints[nextPoint-1].position.y;
-	SecondY = (pow(normalTime,3) - 2* pow(normalTime,2) + normalTime)*controlPoints[nextPoint-1].tangent.y*ChangeInTime;
-	ThirdY = (-2*pow(normalTime,3) + 3*pow(normalTime,2))*controlPoints[nextPoint].position.y;
-	FourthY = (pow(normalTime,3) - pow(normalTime,2)) * controlPoints[nextPoint].tangent.y*ChangeInTime;
-
-	PositionY = FirstY + SecondY + ThirdY + FourthY;
-
-	FirstZ = (2*pow(normalTime,3) - 3*pow(normalTime,2) + 1)*controlPoints[nextPoint-1].position.z;
-	SecondZ = (pow(normalTime,3) - 2* pow(normalTime,2) + normalTime)*controlPoints[nextPoint-1].tangent.z*ChangeInTime;
-	ThirdZ = (-2*pow(normalTime,3) + 3*pow(normalTime,2))*controlPoints[nextPoint].position.z;
-	FourthZ = (pow(normalTime,3) - pow(normalTime,2)) * controlPoints[nextPoint].tangent.z*ChangeInTime;
-
-	PositionZ = FirstZ + SecondZ + ThirdZ + FourthZ;
-	// Return result
-	newPosition = Point(PositionX,PositionY,PositionZ);
+	newPosition = Point(PositionX, PositionY, PositionZ);
 	return newPosition;
 }
 

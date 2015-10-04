@@ -93,6 +93,9 @@ namespace Util {
 		// Find the current time interval (i.e. index of the next control point to follow according to current time)
 		bool findTimeInterval(unsigned int& nextPoint, float time);
 
+		// Hermite curve for one dimension
+		float hermiteCurve1D(const unsigned int nextPoint, const float time, const unsigned int dimension);
+
 		// Implement Hermite curve
 		Point useHermiteCurve(const unsigned int nextPoint, const float time);
 
