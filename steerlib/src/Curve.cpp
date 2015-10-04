@@ -203,97 +203,80 @@ Point Curve::useHermiteCurve(const unsigned int nextPoint, const float time)
 }
 
 Vector Curve::catmullTangent(const unsigned int point) {
-	return (controlPoints[point].position - controlPoints[point-2].position) /
-		(controlPoints[point].time - controlPoints[point-2].time);
+	// for some reason the implementers made Point subtraction return a Vector.
+	// oh well. we can still use it like this.
+
+	float firstCoeff, secondCoeff;
+	Vector firstTerm, secondTerm;
+
+	// First Segment of Curve
+	if (point == 0)
+	{
+		firstCoeff = (controlPoints[2].time - controlPoints[0].time) /
+			(controlPoints[2].time - controlPoints[1].time);
+
+		firstTerm = (controlPoints[1].position - controlPoints[0].position) /
+			(controlPoints[1].time - controlPoints[0].time);
+
+		// second term is supposed to be subtracted, hence the -1.
+		secondCoeff = -1 * (controlPoints[1].time - controlPoints[0].time) /
+			(controlPoints[2].time - controlPoints[1].time);
+
+		secondTerm = (controlPoints[2].position - controlPoints[0].position) /
+			(controlPoints[2].time - controlPoints[0].time);
+	}
+	// Last Segment of Curve
+	else if (point == controlPoints.size() - 1)
+	{
+		firstCoeff = (controlPoints[point].time-controlPoints[point-2].time) /
+			(controlPoints[point-1].time-controlPoints[point-2].time);
+
+		firstTerm = (controlPoints[point].position - controlPoints[point-1].position) /
+			(controlPoints[point].time - controlPoints[point-1].time);
+
+		// again, second term is subtracted.
+		secondCoeff = -1 * (controlPoints[point].time-controlPoints[point-1].time) /
+			(controlPoints[point-1].time-controlPoints[point-2].time);
+
+		firstTerm = (controlPoints[point].position - controlPoints[point-2].position) /
+			(controlPoints[point].time - controlPoints[point-2].time);
+	}
+	// Any segment in between
+	else
+	{
+		// (t_i - t_{i-1}) / (t_{i+1} - t_{i-1})
+		firstCoeff = (controlPoints[point].time - controlPoints[point-1].time) /
+			(controlPoints[point+1].time - controlPoints[point-1].time);
+
+		// (p_{i+1} - p_i) / (t_{i+1} - t_i)
+		firstTerm = (controlPoints[point+1].position - controlPoints[point].position) /
+			(controlPoints[point+1].time - controlPoints[point].time);
+
+		// (t_{i+1} - t_i) / (t_{i+1} - t_{i-1})
+		secondCoeff = (controlPoints[point+1].time - controlPoints[point].time) /
+			(controlPoints[point+1].time - controlPoints[point-1].time);
+
+		// (p_i - p_{i-1}) / (t_i - t_{i-1})
+		secondTerm = (controlPoints[point].position - controlPoints[point-1].position) /
+			(controlPoints[point].time - controlPoints[point-1].time);
+	}
+
+	return firstCoeff * firstTerm + secondCoeff * secondTerm;
 }
 
 // Implement Catmull-Rom curve
 Point Curve::useCatmullCurve(const unsigned int nextPoint, const float time)
 {
-	Point newPosition;
-	float normalTime, intervalTime,ChangeInTime, PositionX, PositionY, PositionZ;
-	float SecondX, FourthX, SecondY, FourthY;
-	float SecondZ, FourthZ;
-	float Xtangent0, Xtangent1, Ytangent0, Ytangent1, Ztangent0, Ztangent1;
+	float intervalTime = controlPoints[nextPoint].time - controlPoints[nextPoint-1].time;
+	float normalTime = (time - controlPoints[nextPoint-1].time)/(intervalTime);
 
-	intervalTime = controlPoints[nextPoint].time - controlPoints[nextPoint-1].time;
-	normalTime = (time - controlPoints[nextPoint-1].time)/(intervalTime);
-	ChangeInTime = time - controlPoints[nextPoint-1].time;
-
-	//nextpoint is k+1
-
-	//Beginning Segment of the Curve
-	if(nextPoint == 1)
-	{
-		float firstPart = (controlPoints[nextPoint+1].time-controlPoints[nextPoint-1].time)/(controlPoints[nextPoint+1].time-controlPoints[nextPoint].time)*((controlPoints[nextPoint].position.x-controlPoints[nextPoint-1].position.x)/(controlPoints[nextPoint].time-controlPoints[nextPoint-1].time));
-		float secondPart = (controlPoints[nextPoint].time-controlPoints[nextPoint-1].time)/(controlPoints[nextPoint+1].time-controlPoints[nextPoint].time)*((controlPoints[nextPoint+1].position.x-controlPoints[nextPoint-1].position.x)/(controlPoints[nextPoint+1].time-controlPoints[nextPoint-1].time));
-		Xtangent0 = firstPart - secondPart;
-
-		float firstPartY = (controlPoints[nextPoint+1].time-controlPoints[nextPoint-1].time)/(controlPoints[nextPoint+1].time-controlPoints[nextPoint].time)*((controlPoints[nextPoint].position.y-controlPoints[nextPoint-1].position.y)/(controlPoints[nextPoint].time-controlPoints[nextPoint-1].time));
-		float secondPartY = (controlPoints[nextPoint].time-controlPoints[nextPoint-1].time)/(controlPoints[nextPoint+1].time-controlPoints[nextPoint].time)*((controlPoints[nextPoint+1].position.y-controlPoints[nextPoint-1].position.y)/(controlPoints[nextPoint+1].time-controlPoints[nextPoint-1].time));
-		Ytangent0 = firstPartY - secondPartY;
-
-		float firstPartZ = (controlPoints[nextPoint+1].time-controlPoints[nextPoint-1].time)/(controlPoints[nextPoint+1].time-controlPoints[nextPoint].time)*((controlPoints[nextPoint].position.z-controlPoints[nextPoint-1].position.z)/(controlPoints[nextPoint].time-controlPoints[nextPoint-1].time));
-		float secondPartZ = (controlPoints[nextPoint].time-controlPoints[nextPoint-1].time)/(controlPoints[nextPoint+1].time-controlPoints[nextPoint].time)*((controlPoints[nextPoint+1].position.z-controlPoints[nextPoint-1].position.z)/(controlPoints[nextPoint+1].time-controlPoints[nextPoint-1].time));
-		Ztangent0 = firstPartZ - secondPartZ;
-
-		Xtangent1 = (controlPoints[nextPoint+1].position.x - controlPoints[nextPoint-1].position.x)/(controlPoints[nextPoint+1].time - controlPoints[nextPoint-1].time);
-		Ytangent1 = (controlPoints[nextPoint+1].position.y - controlPoints[nextPoint-1].position.y)/(controlPoints[nextPoint+1].time - controlPoints[nextPoint-1].time);
-		Ztangent1 = (controlPoints[nextPoint+1].position.z - controlPoints[nextPoint-1].position.z)/(controlPoints[nextPoint+1].time - controlPoints[nextPoint-1].time);
-	}
-	//End Segment of the Curve
-	else if (nextPoint + 1 == controlPoints.size())
-	{
-		Xtangent0 = (controlPoints[nextPoint].position.x - controlPoints[nextPoint-2].position.x)/(controlPoints[nextPoint].time - controlPoints[nextPoint-2].time);
-		Ytangent0 = (controlPoints[nextPoint].position.y - controlPoints[nextPoint-2].position.y)/(controlPoints[nextPoint].time - controlPoints[nextPoint-2].time);
-		Ztangent0 = (controlPoints[nextPoint].position.z - controlPoints[nextPoint-2].position.z)/(controlPoints[nextPoint].time - controlPoints[nextPoint-2].time);
-
-		// 2 is nextpoint -2
-		// 1 is nextpoint -1
-		// 0 is nextpoint
-		float firstPart = (controlPoints[nextPoint].time-controlPoints[nextPoint-2].time)/(controlPoints[nextPoint-1].time-controlPoints[nextPoint-2].time)*((controlPoints[nextPoint].position.x-controlPoints[nextPoint-1].position.x)/(controlPoints[nextPoint].time-controlPoints[nextPoint-1].time));
-		float secondPart = (controlPoints[nextPoint].time-controlPoints[nextPoint-1].time)/(controlPoints[nextPoint-1].time-controlPoints[nextPoint-2].time)*((controlPoints[nextPoint].position.x-controlPoints[nextPoint-2].position.x)/(controlPoints[nextPoint].time-controlPoints[nextPoint-2].time));
-		Xtangent1 = firstPart - secondPart;
-
-
-		float firstPartY = (controlPoints[nextPoint].time-controlPoints[nextPoint-2].time)/(controlPoints[nextPoint-1].time-controlPoints[nextPoint-2].time)*((controlPoints[nextPoint].position.y-controlPoints[nextPoint-1].position.y)/(controlPoints[nextPoint].time-controlPoints[nextPoint-1].time));
-		float secondPartY = (controlPoints[nextPoint].time-controlPoints[nextPoint-1].time)/(controlPoints[nextPoint-1].time-controlPoints[nextPoint-2].time)*((controlPoints[nextPoint].position.y-controlPoints[nextPoint-2].position.y)/(controlPoints[nextPoint].time-controlPoints[nextPoint-2].time));
-		Ytangent1 = firstPartY - secondPartY;
-
-		float firstPartZ = (controlPoints[nextPoint].time-controlPoints[nextPoint-2].time)/(controlPoints[nextPoint-1].time-controlPoints[nextPoint-2].time)*((controlPoints[nextPoint].position.x-controlPoints[nextPoint-1].position.x)/(controlPoints[nextPoint].time-controlPoints[nextPoint-1].time));
-		float secondPartZ = (controlPoints[nextPoint].time-controlPoints[nextPoint-1].time)/(controlPoints[nextPoint-1].time-controlPoints[nextPoint-2].time)*((controlPoints[nextPoint].position.x-controlPoints[nextPoint-2].position.x)/(controlPoints[nextPoint].time-controlPoints[nextPoint-2].time));
-		Ztangent1 = firstPartZ - secondPartZ;
-	}
-	else
-	{
-		Xtangent0 = catmullTangent(nextPoint).x;
-		Xtangent1 = catmullTangent(nextPoint+1).x;
-
-		Ytangent0 = catmullTangent(nextPoint).y;
-		Ytangent1 = catmullTangent(nextPoint+1).y;
-
-		Ztangent0 = catmullTangent(nextPoint).z;
-		Ztangent1 = catmullTangent(nextPoint+1).z;
-	}
+	Vector tangent0 = catmullTangent(nextPoint-1);
+	Vector tangent1 = catmullTangent(nextPoint);
 
 	Point firstTerm = hermite00(normalTime)*controlPoints[nextPoint-1].position;
+	Vector secondTerm = hermite10(normalTime)*tangent0*intervalTime;
 	Point thirdTerm = hermite01(normalTime)*controlPoints[nextPoint].position;
+	Vector fourthTerm = hermite11(normalTime)*tangent1*intervalTime;
 
-	SecondX = hermite10(normalTime)*Xtangent0*ChangeInTime;
-	FourthX = hermite11(normalTime)*Xtangent1*ChangeInTime;
-
-	PositionX = firstTerm.x + SecondX + thirdTerm.x + FourthX;
-
-	SecondY = hermite10(normalTime)*Ytangent0*ChangeInTime;
-	FourthY = hermite11(normalTime)*Ytangent1*ChangeInTime;
-
-	PositionY = firstTerm.y + SecondY + thirdTerm.y + FourthY;
-
-	SecondZ = hermite10(normalTime)*Ztangent0*ChangeInTime;
-	FourthZ = hermite11(normalTime)*Ztangent1*ChangeInTime;
-
-	PositionZ = firstTerm.z + SecondZ + thirdTerm.z + FourthZ;
-	// Return result
-	newPosition = Point(PositionX,PositionY,PositionZ);
-	return newPosition;
+	return firstTerm + secondTerm + thirdTerm + fourthTerm;
 }
