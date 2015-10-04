@@ -65,7 +65,7 @@ void Curve::drawCurve(Color curveColor, float curveThickness, int window)
 		CurrentIndex = i;
 		StartPoint = controlPoints[i-1].position;
 
-		for(float CurrTime = StartTime; CurrTime <= EndTime; CurrTime = CurrTime + deltaTime)
+		for(float CurrTime = StartTime; CurrTime <= EndTime; CurrTime += deltaTime)
 		{
 			if (type == hermiteCurve)
 			{
@@ -172,11 +172,11 @@ float Curve::hermiteCurve1D(const unsigned int nextPoint, const float time, cons
 	// (2t^3 - 3t^2 + 1)*p0
 	float firstTerm = (2*pow(normalTime,3) - 3*pow(normalTime,2) + 1)*controlPoints[nextPoint-1].position[dimension];
 	// (t^3 - 2t^2 + t)*m0
-	float secondTerm = (pow(normalTime,3) - 2* pow(normalTime,2) + normalTime)*controlPoints[nextPoint-1].tangent[dimension]*deltaTime;
+	float secondTerm = (pow(normalTime,3) - 2* pow(normalTime,2) + normalTime)*controlPoints[nextPoint-1].tangent[dimension]*intervalTime;
 	// (-2t^3 + 3t^2)*p1
 	float thirdTerm = (-2*pow(normalTime,3) + 3*pow(normalTime,2))*controlPoints[nextPoint].position[dimension];
 	// (t^3 - t^2)*m1
-	float fourthTerm = (pow(normalTime,3) - pow(normalTime,2)) * controlPoints[nextPoint].tangent[dimension]*deltaTime;
+	float fourthTerm = (pow(normalTime,3) - pow(normalTime,2)) * controlPoints[nextPoint].tangent[dimension]*intervalTime;
 
 	return firstTerm + secondTerm + thirdTerm + fourthTerm;
 }
