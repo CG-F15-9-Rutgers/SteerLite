@@ -162,37 +162,49 @@ bool Curve::findTimeInterval(unsigned int& nextPoint, float time)
 	return false;
 }
 
-float Curve::hermiteCurve1D(const unsigned int nextPoint, const float time, const unsigned int dimension) {
-	// Calculate time interval, and normal time required for later curve calculations
-	float intervalTime = controlPoints[nextPoint].time - controlPoints[nextPoint-1].time;
-	float deltaTime = time - controlPoints[nextPoint-1].time;
-	float normalTime = deltaTime / (intervalTime);
+float hermite00(const float t) {
+	// h_00 = 2t^3 - 3t^2 + 1
+	return (2*pow(t, 3) - 3*pow(t, 2) + 1);
+}
 
-	// Calculate position at t = time on Hermite curve
-	// (2t^3 - 3t^2 + 1)*p0
-	float firstTerm = (2*pow(normalTime,3) - 3*pow(normalTime,2) + 1)*controlPoints[nextPoint-1].position[dimension];
-	// (t^3 - 2t^2 + t)*m0
-	float secondTerm = (pow(normalTime,3) - 2* pow(normalTime,2) + normalTime)*controlPoints[nextPoint-1].tangent[dimension]*intervalTime;
-	// (-2t^3 + 3t^2)*p1
-	float thirdTerm = (-2*pow(normalTime,3) + 3*pow(normalTime,2))*controlPoints[nextPoint].position[dimension];
-	// (t^3 - t^2)*m1
-	float fourthTerm = (pow(normalTime,3) - pow(normalTime,2)) * controlPoints[nextPoint].tangent[dimension]*intervalTime;
+float hermite10(const float t) {
+	// h_10 = t^3 - 2t^2 + t
+	return (pow(t, 3) - 2*pow(t, 2) + t);
+}
 
-	return firstTerm + secondTerm + thirdTerm + fourthTerm;
+float hermite01(const float t) {
+	// h_01 = -2t^3 + 3t^2
+	return -2*pow(t, 3) + 3*pow(t, 2);
+}
+
+float hermite11(const float t) {
+	// h_11 t^3 - t^2
+	return pow(t,3) - pow(t,2);
 }
 
 // Implement Hermite curve
 Point Curve::useHermiteCurve(const unsigned int nextPoint, const float time)
 {
-	Point newPosition;
-	float PositionX, PositionY, PositionZ;
+	// Calculate time interval, and normal time required for later curve calculations
+	float intervalTime = controlPoints[nextPoint].time - controlPoints[nextPoint-1].time;
+	float normalTime = (time - controlPoints[nextPoint-1].time) / (intervalTime);
 
-	PositionX = hermiteCurve1D(nextPoint, time, 0);
-	PositionY = hermiteCurve1D(nextPoint, time, 1);
-	PositionZ = hermiteCurve1D(nextPoint, time, 2);
+	// Calculate position at t = time on Hermite curve
+	// (2t^3 - 3t^2 + 1)*p0
+	Point firstTerm = hermite00(normalTime)*controlPoints[nextPoint-1].position;
+	// (t^3 - 2t^2 + t)*m0
+	Vector secondTerm = hermite10(normalTime)*controlPoints[nextPoint-1].tangent*intervalTime;
+	// (-2t^3 + 3t^2)*p1
+	Point thirdTerm = (-2*pow(normalTime,3) + 3*pow(normalTime,2))*controlPoints[nextPoint].position;
+	// (t^3 - t^2)*m1
+	Vector fourthTerm = (pow(normalTime,3) - pow(normalTime,2)) * controlPoints[nextPoint].tangent*intervalTime;
 
-	newPosition = Point(PositionX, PositionY, PositionZ);
-	return newPosition;
+	return firstTerm + secondTerm + thirdTerm + fourthTerm;
+}
+
+Vector Curve::catmullTangent(const unsigned int point) {
+	return (controlPoints[point].position - controlPoints[point-2].position) /
+		(controlPoints[point].time - controlPoints[point-2].time);
 }
 
 // Implement Catmull-Rom curve
@@ -200,8 +212,8 @@ Point Curve::useCatmullCurve(const unsigned int nextPoint, const float time)
 {
 	Point newPosition;
 	float normalTime, intervalTime,ChangeInTime, PositionX, PositionY, PositionZ;
-	float FirstX, SecondX, ThirdX, FourthX, FirstY, SecondY, ThirdY, FourthY;
-	float FirstZ, SecondZ, ThirdZ, FourthZ;
+	float SecondX, FourthX, SecondY, FourthY;
+	float SecondZ, FourthZ;
 	float Xtangent0, Xtangent1, Ytangent0, Ytangent1, Ztangent0, Ztangent1;
 
 	intervalTime = controlPoints[nextPoint].time - controlPoints[nextPoint-1].time;
@@ -228,30 +240,6 @@ Point Curve::useCatmullCurve(const unsigned int nextPoint, const float time)
 		Xtangent1 = (controlPoints[nextPoint+1].position.x - controlPoints[nextPoint-1].position.x)/(controlPoints[nextPoint+1].time - controlPoints[nextPoint-1].time);
 		Ytangent1 = (controlPoints[nextPoint+1].position.y - controlPoints[nextPoint-1].position.y)/(controlPoints[nextPoint+1].time - controlPoints[nextPoint-1].time);
 		Ztangent1 = (controlPoints[nextPoint+1].position.z - controlPoints[nextPoint-1].position.z)/(controlPoints[nextPoint+1].time - controlPoints[nextPoint-1].time);
-
-		FirstX = (2*pow(normalTime,3) - 3*pow(normalTime,2) + 1)*controlPoints[nextPoint-1].position.x;
-		SecondX = (pow(normalTime,3) - 2* pow(normalTime,2) + normalTime)*Xtangent0*ChangeInTime;
-		ThirdX = (-2*pow(normalTime,3) + 3*pow(normalTime,2))*controlPoints[nextPoint].position.x;
-		FourthX = (pow(normalTime,3) - pow(normalTime,2)) *Xtangent1*ChangeInTime;
-
-		PositionX = FirstX + SecondX + ThirdX + FourthX;
-
-		FirstY = (2*pow(normalTime,3) - 3*pow(normalTime,2) + 1)*controlPoints[nextPoint-1].position.y;
-		SecondY = (pow(normalTime,3) - 2* pow(normalTime,2) + normalTime)*Ytangent0*ChangeInTime;
-		ThirdY = (-2*pow(normalTime,3) + 3*pow(normalTime,2))*controlPoints[nextPoint].position.y;
-		FourthY = (pow(normalTime,3) - pow(normalTime,2)) *Ytangent1*ChangeInTime;
-
-		PositionY = FirstY + SecondY + ThirdY + FourthY;
-
-		FirstZ = (2*pow(normalTime,3) - 3*pow(normalTime,2) + 1)*controlPoints[nextPoint-1].position.z;
-		SecondZ = (pow(normalTime,3) - 2* pow(normalTime,2) + normalTime)*Ztangent0*ChangeInTime;
-		ThirdZ = (-2*pow(normalTime,3) + 3*pow(normalTime,2))*controlPoints[nextPoint].position.z;
-		FourthZ = (pow(normalTime,3) - pow(normalTime,2)) *Ztangent1*ChangeInTime;
-
-		PositionZ = FirstZ + SecondZ + ThirdZ + FourthZ;
-		// Return result
-		newPosition = Point(PositionX,PositionY,PositionZ);
-		return newPosition;
 	}
 	//End Segment of the Curve
 	else if (nextPoint + 1 == controlPoints.size())
@@ -275,65 +263,37 @@ Point Curve::useCatmullCurve(const unsigned int nextPoint, const float time)
 		float firstPartZ = (controlPoints[nextPoint].time-controlPoints[nextPoint-2].time)/(controlPoints[nextPoint-1].time-controlPoints[nextPoint-2].time)*((controlPoints[nextPoint].position.x-controlPoints[nextPoint-1].position.x)/(controlPoints[nextPoint].time-controlPoints[nextPoint-1].time));
 		float secondPartZ = (controlPoints[nextPoint].time-controlPoints[nextPoint-1].time)/(controlPoints[nextPoint-1].time-controlPoints[nextPoint-2].time)*((controlPoints[nextPoint].position.x-controlPoints[nextPoint-2].position.x)/(controlPoints[nextPoint].time-controlPoints[nextPoint-2].time));
 		Ztangent1 = firstPartZ - secondPartZ;
-
-		FirstX = (2*pow(normalTime,3) - 3*pow(normalTime,2) + 1)*controlPoints[nextPoint-1].position.x;
-		SecondX = (pow(normalTime,3) - 2* pow(normalTime,2) + normalTime)*Xtangent0*ChangeInTime;
-		ThirdX = (-2*pow(normalTime,3) + 3*pow(normalTime,2))*controlPoints[nextPoint].position.x;
-		FourthX = (pow(normalTime,3) - pow(normalTime,2)) *Xtangent1*ChangeInTime;
-
-		PositionX = FirstX + SecondX + ThirdX + FourthX;
-
-		FirstY = (2*pow(normalTime,3) - 3*pow(normalTime,2) + 1)*controlPoints[nextPoint-1].position.y;
-		SecondY = (pow(normalTime,3) - 2* pow(normalTime,2) + normalTime)*Ytangent0*ChangeInTime;
-		ThirdY = (-2*pow(normalTime,3) + 3*pow(normalTime,2))*controlPoints[nextPoint].position.y;
-		FourthY = (pow(normalTime,3) - pow(normalTime,2)) *Ytangent1*ChangeInTime;
-
-		PositionY = FirstY + SecondY + ThirdY + FourthY;
-
-		FirstZ = (2*pow(normalTime,3) - 3*pow(normalTime,2) + 1)*controlPoints[nextPoint-1].position.z;
-		SecondZ = (pow(normalTime,3) - 2* pow(normalTime,2) + normalTime)*Ztangent0*ChangeInTime;
-		ThirdZ = (-2*pow(normalTime,3) + 3*pow(normalTime,2))*controlPoints[nextPoint].position.z;
-		FourthZ = (pow(normalTime,3) - pow(normalTime,2)) *Ztangent1*ChangeInTime;
-
-		PositionZ = FirstZ + SecondZ + ThirdZ + FourthZ;
-		// Return result
-		newPosition = Point(PositionX,PositionY,PositionZ);
-		return newPosition;
-
 	}
 	else
 	{
-		Xtangent0 = (controlPoints[nextPoint].position.x - controlPoints[nextPoint-2].position.x)/(controlPoints[nextPoint].time - controlPoints[nextPoint-2].time);
-		Xtangent1 = (controlPoints[nextPoint+1].position.x - controlPoints[nextPoint-1].position.x)/(controlPoints[nextPoint+1].time - controlPoints[nextPoint-1].time);
+		Xtangent0 = catmullTangent(nextPoint).x;
+		Xtangent1 = catmullTangent(nextPoint+1).x;
 
-		Ytangent0 = (controlPoints[nextPoint].position.y - controlPoints[nextPoint-2].position.y)/(controlPoints[nextPoint].time - controlPoints[nextPoint-2].time);
-		Ytangent1 = (controlPoints[nextPoint+1].position.y - controlPoints[nextPoint-1].position.y)/(controlPoints[nextPoint+1].time - controlPoints[nextPoint-1].time);
+		Ytangent0 = catmullTangent(nextPoint).y;
+		Ytangent1 = catmullTangent(nextPoint+1).y;
 
-		Ztangent0 = (controlPoints[nextPoint].position.z - controlPoints[nextPoint-2].position.z)/(controlPoints[nextPoint].time - controlPoints[nextPoint-2].time);
-		Ztangent1 = (controlPoints[nextPoint+1].position.z - controlPoints[nextPoint-1].position.z)/(controlPoints[nextPoint+1].time - controlPoints[nextPoint-1].time);
-
-		FirstX = (2*pow(normalTime,3) - 3*pow(normalTime,2) + 1)*controlPoints[nextPoint-1].position.x;
-		SecondX = (pow(normalTime,3) - 2* pow(normalTime,2) + normalTime)*Xtangent0*ChangeInTime;
-		ThirdX = (-2*pow(normalTime,3) + 3*pow(normalTime,2))*controlPoints[nextPoint].position.x;
-		FourthX = (pow(normalTime,3) - pow(normalTime,2)) *Xtangent1*ChangeInTime;
-
-		PositionX = FirstX + SecondX + ThirdX + FourthX;
-
-		FirstY = (2*pow(normalTime,3) - 3*pow(normalTime,2) + 1)*controlPoints[nextPoint-1].position.y;
-		SecondY = (pow(normalTime,3) - 2* pow(normalTime,2) + normalTime)*Ytangent0*ChangeInTime;
-		ThirdY = (-2*pow(normalTime,3) + 3*pow(normalTime,2))*controlPoints[nextPoint].position.y;
-		FourthY = (pow(normalTime,3) - pow(normalTime,2)) *Ytangent1*ChangeInTime;
-
-		PositionY = FirstY + SecondY + ThirdY + FourthY;
-
-		FirstZ = (2*pow(normalTime,3) - 3*pow(normalTime,2) + 1)*controlPoints[nextPoint-1].position.z;
-		SecondZ = (pow(normalTime,3) - 2* pow(normalTime,2) + normalTime)*Ztangent0*ChangeInTime;
-		ThirdZ = (-2*pow(normalTime,3) + 3*pow(normalTime,2))*controlPoints[nextPoint].position.z;
-		FourthZ = (pow(normalTime,3) - pow(normalTime,2)) *Ztangent1*ChangeInTime;
-
-		PositionZ = FirstZ + SecondZ + ThirdZ + FourthZ;
-		// Return result
-		newPosition = Point(PositionX,PositionY,PositionZ);
-		return newPosition;
+		Ztangent0 = catmullTangent(nextPoint).z;
+		Ztangent1 = catmullTangent(nextPoint+1).z;
 	}
+
+	Point firstTerm = hermite00(normalTime)*controlPoints[nextPoint-1].position;
+	Point thirdTerm = hermite01(normalTime)*controlPoints[nextPoint].position;
+
+	SecondX = hermite10(normalTime)*Xtangent0*ChangeInTime;
+	FourthX = hermite11(normalTime)*Xtangent1*ChangeInTime;
+
+	PositionX = firstTerm.x + SecondX + thirdTerm.x + FourthX;
+
+	SecondY = hermite10(normalTime)*Ytangent0*ChangeInTime;
+	FourthY = hermite11(normalTime)*Ytangent1*ChangeInTime;
+
+	PositionY = firstTerm.y + SecondY + thirdTerm.y + FourthY;
+
+	SecondZ = hermite10(normalTime)*Ztangent0*ChangeInTime;
+	FourthZ = hermite11(normalTime)*Ztangent1*ChangeInTime;
+
+	PositionZ = firstTerm.z + SecondZ + thirdTerm.z + FourthZ;
+	// Return result
+	newPosition = Point(PositionX,PositionY,PositionZ);
+	return newPosition;
 }
