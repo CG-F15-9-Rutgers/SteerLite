@@ -101,6 +101,7 @@ void Curve::sortControlPoints()
 {
 	std::sort(controlPoints.begin(), controlPoints.end(), SortByTime);
 	controlPoints.erase(unique(controlPoints.begin(), controlPoints.end(), CheckEquals), controlPoints.end());
+
 	return;
 }
 
@@ -278,5 +279,7 @@ Point Curve::useCatmullCurve(const unsigned int nextPoint, const float time)
 	Point thirdTerm = hermite01(normalTime)*controlPoints[nextPoint].position;
 	Vector fourthTerm = hermite11(normalTime)*tangent1*intervalTime;
 
+
 	return firstTerm + secondTerm + thirdTerm + fourthTerm;
+
 }
