@@ -37,3 +37,16 @@
 # SDF files
 **/*.opensdf
 **/*.sdf
+
+# Added stuff
+*.in
+*.swp
+
+external/glfw/config.log
+*.x11
+build/bin
+*/build/deps
+
+steersim
+steerbench
+steertool
