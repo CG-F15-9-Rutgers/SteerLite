@@ -277,7 +277,8 @@ Util::Vector SocialForcesAgent::calcProximityForce(float dt)
        
      }
     }
-    proximity_force = ((away + awayOb)/ AGENT_MASS)* dt; 
+    proximity_force = away + awayOb;
+    proximity_force = ((proximity_force)/ AGENT_MASS)* dt; 
     return proximity_force;
 }
 
@@ -365,32 +366,6 @@ Util::Vector SocialForcesAgent::calcWallRepulsionForce(float dt)
 	  std::pair<Util::Point,Util::Point> line = calcWallPointsFromNormal(tmp_ob, wallNormal);
 	  std::pair<float, Util::Point> min_stuff = minimum_distance(line.first, line.second, position());
 	  wall_repulsion_force = wall_repulsion_force +  wallNormal * (min_stuff.first + radius()) * _SocialForcesParams.sf_body_force;
-	 /* wall_repulsion_force = wall_repulsion_force +
-				((
-					(
-						(
-								wallNormal
-						)
-						*
-						(
-							radius() +
-							_SocialForcesParams.sf_personal_space_threshold -
-							(
-								min_stuff.first
-							)
-						)
-					)
-					/
-					min_stuff.first
-				)* _SocialForcesParams.sf_body_force * dt);
-	  wall_repulsion_force = wall_repulsion_force +
-			(
-				dot(forward(),  rightSideInXZPlane(wallNormal))
-				*
-				rightSideInXZPlane(wallNormal)
-				*
-				tmp_ob->computePenetration(this->position(), this->radius())
-			)* _SocialForcesParams.sf_sliding_friction_force * dt; */
 	  
 	 }
 	  
