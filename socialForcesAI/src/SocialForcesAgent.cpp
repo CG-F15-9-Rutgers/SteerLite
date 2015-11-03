@@ -265,6 +265,7 @@ Util::Vector SocialForcesAgent::calcProximityForce(float dt)
      
      else
      {
+      tempOb = dynamic_cast<SteerLib::ObstacleInterface *>(*neighbor);
       Util::Vector wallNormal = calcWallNormal(tempOb);
       std::pair<Util::Point,Util::Point> line = calcWallPointsFromNormal(tempOb, wallNormal);
       std::pair<float, Util::Point> min_stuff = minimum_distance(line.first,line.second,position());
@@ -598,11 +599,11 @@ void SocialForcesAgent::updateAI(float timeStamp, float dt, unsigned int frameNu
 	Util::Vector proximityForce = calcProximityForce(dt);
 
 // #define _DEBUG_ 1
-#ifdef _DEBUG_
+//#ifdef _DEBUG_
 	std::cout << "agent" << id() << " repulsion force " << repulsionForce << std::endl;
 	std::cout << "agent" << id() << " proximity force " << proximityForce << std::endl;
 	std::cout << "agent" << id() << " pref force " << prefForce << std::endl;
-#endif
+//#endif
 	// _velocity = _newVelocity;
 	int alpha=1;
 	if ( repulsionForce.length() > 0.0)
