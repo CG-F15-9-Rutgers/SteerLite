@@ -182,7 +182,7 @@ void SocialForcesAgent::reset(const SteerLib::AgentInitialConditions & initialCo
 				(
 					(
 						Util::Vector(goalDirection.x, 0.0f, goalDirection.z) *
-						PERFERED_SPEED
+						PREFERED_SPEED
 					)
 				- velocity()
 				)
@@ -289,8 +289,8 @@ Vector SocialForcesAgent::calcGoalForce(Vector _goalDirection, float _dt)
     //Util::Vector prefForce = ((_goalDirection*PERFERED_SPEED - velocity()) / _dt);
    // Util::Vector prefForce = (((_goalDirection * PERFERED_SPEED) - velocity()) / (_SocialForcesParams.sf_acceleration/_dt)) + velocity();
   //Util::Vector goalForce = (_goalDirection * PERFERED_SPEED);
-  Util::Vector goalForce = ((_goalDirection * PERFERED_SPEED) - velocity()) / _dt;
-  return goalForce/5;
+  Util::Vector goalForce = (((_goalDirection * PREFERED_SPEED) - velocity()) / _dt)/5;
+  return goalForce;
     
 }
 
@@ -606,11 +606,11 @@ void SocialForcesAgent::updateAI(float timeStamp, float dt, unsigned int frameNu
 	Util::Vector proximityForce = calcProximityForce(dt);
 
 // #define _DEBUG_ 1
-//#ifdef _DEBUG_
+#ifdef _DEBUG_
 	std::cout << "agent" << id() << " repulsion force " << repulsionForce << std::endl;
 	std::cout << "agent" << id() << " proximity force " << proximityForce << std::endl;
 	std::cout << "agent" << id() << " pref force " << prefForce << std::endl;
-//#endif
+#endif
 	// _velocity = _newVelocity;
 	int alpha=1;
 	if ( repulsionForce.length() > 0.0)
