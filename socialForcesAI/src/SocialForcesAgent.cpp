@@ -273,12 +273,12 @@ Util::Vector SocialForcesAgent::calcProximityForce(float dt)
       
       Util::Vector awayObTemp = normalize(position()-min_stuff.second);
       
-      awayOb = awayOb * (_SocialForcesParams.sf_wall_a*exp((((this->radius())-(this->position()-min_stuff.second).length())/_SocialForcesParams.sf_wall_b)))*dt;
-       
+      awayOb = awayOb + awayObTemp * (_SocialForcesParams.sf_wall_a*exp((((this->radius())-(this->position()-min_stuff.second).length())/_SocialForcesParams.sf_wall_b)));
+
      }
     }
     proximity_force = away + awayOb;
-    proximity_force = ((proximity_force)/ AGENT_MASS)* dt; 
+    //proximity_force = ((proximity_force)/ AGENT_MASS)* dt; 
     return proximity_force;
 }
 
@@ -288,8 +288,10 @@ Vector SocialForcesAgent::calcGoalForce(Vector _goalDirection, float _dt)
     //std::cerr<<"<<<calcGoalForce>>> Please Implement my body\n";
     //Util::Vector prefForce = ((_goalDirection*PERFERED_SPEED - velocity()) / _dt);
    // Util::Vector prefForce = (((_goalDirection * PERFERED_SPEED) - velocity()) / (_SocialForcesParams.sf_acceleration/_dt)) + velocity();
-  Util::Vector prefForce = (_goalDirection * PERFERED_SPEED);
-    return prefForce;
+  //Util::Vector goalForce = (_goalDirection * PERFERED_SPEED);
+  Util::Vector goalForce = ((_goalDirection * PERFERED_SPEED) - velocity()) / _dt;
+  return goalForce/5;
+    
 }
 
 
@@ -333,7 +335,7 @@ Util::Vector SocialForcesAgent::calcAgentRepulsionForce(float dt)
     }
      
    }
-   agent_repulsion_force = (agent_repulsion_force / AGENT_MASS)* dt; 
+   //agent_repulsion_force = (agent_repulsion_force / AGENT_MASS)* dt; 
    return agent_repulsion_force;
 }
 
@@ -364,13 +366,13 @@ Util::Vector SocialForcesAgent::calcWallRepulsionForce(float dt)
 	 {
 	  Util::Vector wallNormal = calcWallNormal(tmp_ob);
 	  std::pair<Util::Point,Util::Point> line = calcWallPointsFromNormal(tmp_ob, wallNormal);
-	  std::pair<float, Util::Point> min_stuff = minimum_distance(line.first, line.second, position());
-	  wall_repulsion_force = wall_repulsion_force +  wallNormal * (min_stuff.first + radius()) * _SocialForcesParams.sf_body_force;
-	  
+	  std::pair<float, Util::Point> min_stuff = minimum_distance(line.first, line.second, this->position());
+	  wall_repulsion_force = wall_repulsion_force +  wallNormal * (min_stuff.first + this->radius()) * _SocialForcesParams.sf_body_force*dt;
+
 	 }
 	  
 	}
-	wall_repulsion_force = (wall_repulsion_force / AGENT_MASS)* dt; 
+	//wall_repulsion_force = (wall_repulsion_force / AGENT_MASS)* dt; 
 	return wall_repulsion_force;
 
 }
@@ -616,10 +618,10 @@ void SocialForcesAgent::updateAI(float timeStamp, float dt, unsigned int frameNu
 		alpha=0;
 	}
 
-	//Util::Vector acceleration = (prefForce + repulsionForce + proximityForce) / AGENT_MASS;
-	//_velocity = velocity() + acceleration * dt;
+	Util::Vector acceleration = (prefForce + repulsionForce + proximityForce) / AGENT_MASS;
+	_velocity = velocity() + acceleration * dt;
 	
-	_velocity = (prefForce) + repulsionForce + proximityForce;
+	//_velocity = velocity() + (prefForce) + repulsionForce + proximityForce;
 
 	_velocity = clamp(velocity(), _SocialForcesParams.sf_max_speed);
 	_velocity.y=0.0f;
