@@ -76,6 +76,71 @@ namespace SteerLib
 		//TODO
 		std::cout<<"\nIn A*";
 
+		std::vector<SteerLib::AStarPlannerNode> ClosedSet;
+		std::vector<SteerLib::AStarPlannerNode> OpenSet;
+		std::vector<SteerLib::AStarPlannerNode> CameFrom;
+
+		OpenSet.push_back() //TODO need to push Start Node, don't know how to get Node
+
+		int lowestFScore = 0;
+		int lowestFIndex = 0;
+		AStarPlannerNode CurrentNode;
+
+		while(!OpenSet.empty())
+		{	
+
+			//Get Node with the lowest Fscore
+
+			lowestFScore = OpenSet[0].f;
+			lowestFIndex = 0; 
+
+			for( int i = 0: i< OpenSet.size(); i++)
+			{
+				if(OpenSet[i].f < lowestFScore)
+				{
+					lowestFScore = OpenSet[i].f;
+					lowestFIndex = i;
+
+				}
+
+
+			}
+
+			CurrentNode = OpenSet[lowestFIndex];
+
+			if(CurrentNode.point == goal)
+			{
+				
+				//TODO reconstruct path
+
+			}
+
+			ClosedSet.push_back(OpenSet[lowestFIndex]);
+			OpenSet.erase(OpenSet.begin() + lowestFIndex);
+
+
+			//TODO get neighbors of current Node
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		}
+
+
+
+
 		return false;
 	}
 }
