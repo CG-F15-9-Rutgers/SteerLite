@@ -9,7 +9,7 @@
 #include <set>
 #include <map>
 #include <iostream>
-#include <algorithm> 
+#include <algorithm>
 #include <functional>
 #include <queue>
 #include <math.h>
@@ -49,7 +49,6 @@ namespace SteerLib
 			{
 				int index = gSpatialDatabase->getCellIndexFromGridCoords( i, j );
 				traversal_cost += gSpatialDatabase->getTraversalCost ( index );
-				
 			}
 		}
 
@@ -59,14 +58,12 @@ namespace SteerLib
 	}
 
 
-
 	Util::Point AStarPlanner::getPointFromGridIndex(int id)
 	{
 		Util::Point p;
 		gSpatialDatabase->getLocationFromIndex(id, p);
 		return p;
 	}
-
 
 
 	bool AStarPlanner::computePath(std::vector<Util::Point>& agent_path,  Util::Point start, Util::Point goal, SteerLib::GridDatabase2D * _gSpatialDatabase, bool append_to_path)
@@ -81,59 +78,46 @@ namespace SteerLib
 		std::vector<SteerLib::AStarPlannerNode> CameFrom;
 		std::vector<SteerLib::AStarPlannerNode> NeighborVector;
 
-		
-		
 		int lowestFScore = 0;
 		int lowestFIndex = 0;
 		double CostSoFar;
 		SteerLib::AStarPlannerNode StartNode(start, 0,0, nullptr);
 		OpenSet.push_back(StartNode);
-					
-		
-
-
 
 		while(!OpenSet.empty())
-		{	
-
+		{
 			//Get Node with the lowest Fscore
 
 			lowestFScore = OpenSet[0].f;
 			lowestFIndex = 0; 
 
-			for( int i = 0: i< OpenSet.size(); i++)
+			for( int i = 0; i< OpenSet.size(); i++)
 			{
 				if(OpenSet[i].f < lowestFScore)
 				{
 					lowestFScore = OpenSet[i].f;
 					lowestFIndex = i;
-
 				}
-
-
 			}
 
-			CurrentNode = OpenSet[lowestFIndex];
+			SteerLib::AStarPlannerNode CurrentNode = OpenSet[lowestFIndex];
 
 			if(CurrentNode.point == goal)
 			{
-				
 				//TODO reconstruct path
-
 			}
 
 			ClosedSet.push_back(OpenSet[lowestFIndex]);
 			OpenSet.erase(OpenSet.begin() + lowestFIndex);
 
-			NeighborVector = NeighborNodes(CurrentNode, goal)
+			NeighborVector = NeighborNodes(CurrentNode, goal);
 
-			for( int NeighborIndex = 0: NeighborIndex< NeighborVector.size(); NeighborIndex++)
+			for( int NeighborIndex = 0; NeighborIndex< NeighborVector.size(); NeighborIndex++)
 			{
 				//Neighbor in ClosedSet
 				if(std::find(ClosedSet.begin(), ClosedSet.end(), NeighborVector[NeighborIndex]) != ClosedSet.end()) 
 				{
 					continue;
-
 				}
 
 				//CostSoFar = CurrentNode.g + DistanceBetween(
@@ -142,26 +126,16 @@ namespace SteerLib
 				if(std::find(OpenSet.begin(), OpenSet.end(), NeighborVector[NeighborIndex]) != OpenSet.end()) 
 				{
 					OpenSet.push_back(NeighborVector[NeighborIndex]);
-
 				}
 				//else if(NeighborVector[NeighborIndex].g >=
 
-
-
-
-			
-
-
+			}
 		}
-
-
-
-
 		return false;
 	}
 
 
-	std::vector<SteerLib::AStarPlannerNode> NeighborNodes(SteerLib::AStarPlannerNode OriginNode, Util::Point goal)
+	std::vector<SteerLib::AStarPlannerNode> AStarPlanner::NeighborNodes(SteerLib::AStarPlannerNode OriginNode, Util::Point goal)
 	{
 		int x;
 		int y;
@@ -178,15 +152,14 @@ namespace SteerLib
 		y = OriginNode.point.y;
 		z = OriginNode.point.z;
 
-		
-		Util::Point North = Point(x,y,z+1);
-		Util::Point South = Point(x,y,z-1); 
-		Util::Point East = Point(x+1,y,z); 
-		Util::Point West = Point(x-1,y,z); 
-		Util::Point NorthEast = Point(x+1,y,z+1);
-		Util::Point SouthEast = Point(x+1,y,z-1); 
-		Util::Point NorthWest = Point(x-1,y,z+1); 
-		Util::Point SouthWest = Point(x-1,y,z-1);
+		Util::Point North = Util::Point(x,y,z+1);
+		Util::Point South = Util::Point(x,y,z-1); 
+		Util::Point East =  Util::Point(x+1,y,z); 
+		Util::Point West =  Util::Point(x-1,y,z); 
+		Util::Point NorthEast = Util::Point(x+1,y,z+1);
+		Util::Point SouthEast = Util::Point(x+1,y,z-1); 
+		Util::Point NorthWest = Util::Point(x-1,y,z+1); 
+		Util::Point SouthWest = Util::Point(x-1,y,z-1);
 
 		AddNode(North, NonDiagonalCost, OriginNode, NeighborVector, goal);
 		AddNode(South, NonDiagonalCost, OriginNode, NeighborVector, goal);
@@ -198,30 +171,25 @@ namespace SteerLib
 		AddNode(SouthEast, DiagonalCost, OriginNode, NeighborVector, goal);
 
 		return NeighborVector;
-	
-
-
 	}
 
-	void AddNode(Util::Point CurrentPoint,double cost, SteerLib::AStarPlannerNode FromNode, std::vector<SteerLib::AStarPlannerNode>& NeighborVector, Util::Point goal)
+
+	void AStarPlanner::AddNode(Util::Point CurrentPoint, double cost, SteerLib::AStarPlannerNode FromNode, std::vector<SteerLib::AStarPlannerNode>& NeighborVector, Util::Point goal)
 	{
 		int NodeIndex;
 		float DistanceInBetween;
 
-		NodeIndex = gSpatialDatabase->getCellIndexFromLocation(OriginPoint);
+		NodeIndex = gSpatialDatabase->getCellIndexFromLocation(CurrentPoint);
 
 		if(!canBeTraversed (NodeIndex))
 		{
 			return;
-
 		}
 		else
 		{
-
 			DistanceInBetween = distanceBetween(CurrentPoint, goal);
-			SteerLib::AStarPlannerNode InsertNode(CurrentPoint, FromNode.g + cost ,(double)DistanceInBetween, FromNode);
+			SteerLib::AStarPlannerNode InsertNode(CurrentPoint, FromNode.g + cost, (double)DistanceInBetween, &FromNode);
 			NeighborVector.push_back(InsertNode);
-
 		}
 
 	}

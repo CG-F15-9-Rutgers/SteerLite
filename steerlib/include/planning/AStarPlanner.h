@@ -96,6 +96,9 @@ namespace SteerLib
 			*/
 
 			bool computePath(std::vector<Util::Point>& agent_path, Util::Point start, Util::Point goal, SteerLib::GridDatabase2D * _gSpatialDatabase, bool append_to_path = false);
+
+			std::vector<SteerLib::AStarPlannerNode> NeighborNodes(SteerLib::AStarPlannerNode OriginNode, Util::Point goal);
+			void AddNode(Util::Point CurrentPoint, double cost, SteerLib::AStarPlannerNode FromNode, std::vector<SteerLib::AStarPlannerNode>& NeighborVector, Util::Point goal);
 		private:
 			SteerLib::GridDatabase2D * gSpatialDatabase;
 	};
