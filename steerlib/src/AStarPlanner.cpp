@@ -23,7 +23,7 @@
 #define MAX(X,Y) ((X) > (Y) ? (X) : (Y))
 
 // Set to false for Euclidean distance
-#define USE_MANHATTAN_DISTANCE true
+#define USE_MANHATTAN_DISTANCE false
 
 namespace SteerLib
 {
@@ -73,6 +73,8 @@ namespace SteerLib
 		gSpatialDatabase = _gSpatialDatabase;
 
 		std::map<Util::Point, SteerLib::AStarPlannerNode, epsilonComparator> NodeMap;
+		agent_path.clear();
+		std::map<SteerLib::AStarPlannerNode, SteerLib::AStarPlannerNode, NodeComparator> CameFromNodeMap;
 
 		//TODO
 		//std::cout<<"\nIn A*";
@@ -112,34 +114,39 @@ namespace SteerLib
 			{
 				agent_path.push_back(CurrentNode.point);
 
-				while(CurrentNode.parent != nullptr)
+			
+				while(CurrentNode.point != start)
 				{
-					CurrentNode = *CurrentNode.parent;
+					CurrentNode = CameFromNodeMap.at(CurrentNode);
 					agent_path.push_back(CurrentNode.point);
+				
 				}
 
+			
 				agent_path.push_back(start);
+
+				std::reverse(agent_path.begin(), agent_path.end());
+				
 				return true;
 			}
 
 			ClosedSet.push_back(OpenSet[lowestFIndex]);
 			OpenSet.erase(OpenSet.begin() + lowestFIndex);
 
-			NeighborNodes(CurrentNode.point, goal,NodeMap,ClosedSet,OpenSet);
+			NeighborNodes(CurrentNode.point, goal,NodeMap,ClosedSet,OpenSet,CameFromNodeMap);
 		}
 		return false;
 	}
 
 
-	void AStarPlanner::NeighborNodes(Util::Point OriginPoint, Util::Point goal,	std::map<Util::Point,SteerLib::AStarPlannerNode,epsilonComparator>& NodeMap,std::vector<Util::Point>& ClosedSet, std::vector<Util::Point>& OpenSet)
+	void AStarPlanner::NeighborNodes(Util::Point OriginPoint, Util::Point goal,	std::map<Util::Point,SteerLib::AStarPlannerNode,epsilonComparator>& NodeMap,std::vector<Util::Point>& ClosedSet, std::vector<Util::Point>& OpenSet, std::map<SteerLib::AStarPlannerNode, SteerLib::AStarPlannerNode, NodeComparator>& CameFromNodeMap)
 	{
 		int x;
 		int y;
 		int z;
 		double NonDiagonalCost;
 		double DiagonalCost;
-		//std::cout << "In Planner" << '\n';
-
+		
 		SteerLib::AStarPlannerNode OriginNode = NodeMap.at(OriginPoint);
 
 		DiagonalCost =std::numeric_limits<double>::infinity();
@@ -154,11 +161,14 @@ namespace SteerLib
 		Util::Point East =  Util::Point(x+1,y,z);
 		Util::Point West =  Util::Point(x-1,y,z);
 
-		AddNode(North, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet);
-		AddNode(South, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet);
-		AddNode(East, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet);
-		AddNode(West, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet);
-		//std::cout << OpenSet.size() << '\n';
+		//std::cout << "Start " << OriginNode.point << '\n';
+
+
+		AddNode(North, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet,CameFromNodeMap);
+		AddNode(South, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet,CameFromNodeMap);
+		AddNode(East, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, CameFromNodeMap);
+		AddNode(West, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, CameFromNodeMap);
+		
 		if(!USE_MANHATTAN_DISTANCE)
 		{
 			Util::Point NorthEast = Util::Point(x+1,y,z+1);
@@ -166,21 +176,21 @@ namespace SteerLib
 			Util::Point NorthWest = Util::Point(x-1,y,z+1);
 			Util::Point SouthWest = Util::Point(x-1,y,z-1);
 
-			AddNode(NorthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet);
-			AddNode(SouthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet);
-			AddNode(NorthWest, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet);
-			AddNode(SouthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet);
+			AddNode(NorthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, CameFromNodeMap);
+			AddNode(SouthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, CameFromNodeMap);
+			AddNode(NorthWest, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, CameFromNodeMap);
+			AddNode(SouthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, CameFromNodeMap);
 		}
 	}
 
 
-	void AStarPlanner::AddNode(Util::Point CurrentPoint, double cost, SteerLib::AStarPlannerNode FromNode, Util::Point goal, std::map<Util::Point,SteerLib::AStarPlannerNode,epsilonComparator>& NodeMap, std::vector<Util::Point>& ClosedSet, std::vector<Util::Point>& OpenSet)
+	void AStarPlanner::AddNode(Util::Point CurrentPoint, double cost, SteerLib::AStarPlannerNode FromNode, Util::Point goal, std::map<Util::Point,SteerLib::AStarPlannerNode,epsilonComparator>& NodeMap, std::vector<Util::Point>& ClosedSet, std::vector<Util::Point>& OpenSet, std::map<SteerLib::AStarPlannerNode, SteerLib::AStarPlannerNode, NodeComparator>& CameFromNodeMap )
 	{
 		int NodeIndex;
 		float DistanceInBetween;
 		double TentativeScore;
-
 		NodeIndex = gSpatialDatabase->getCellIndexFromLocation(CurrentPoint);
+		std::map<SteerLib::AStarPlannerNode, SteerLib::AStarPlannerNode, NodeComparator>::iterator CameFromMapIt; 
 
 		if(!canBeTraversed (NodeIndex))
 		{
@@ -191,31 +201,50 @@ namespace SteerLib
 		{
 			SteerLib::AStarPlannerNode InsertNode(CurrentPoint, cost, cost, &FromNode);
 			NodeMap.emplace(CurrentPoint,InsertNode);
+		
 		}
 
 		if(std::find(ClosedSet.begin(), ClosedSet.end(), CurrentPoint) != ClosedSet.end())
 		{
 			return;
 		}
-		//std::cout << "did not return yet" << '\n';
+		
 		TentativeScore = FromNode.g + distanceBetween(FromNode.point,CurrentPoint);
 
 		if(std::find(OpenSet.begin(), OpenSet.end(), CurrentPoint) == OpenSet.end())
 		{
 			OpenSet.push_back(CurrentPoint);
-			//std::cout << OpenSet.size() << '\n';
-
+			
 		}
 		else if(TentativeScore >=NodeMap.at(CurrentPoint).g)
 		{
 			return;
 		}
 
-		//std::cout << "Before: " << NodeMap.at(CurrentPoint).g << '\n';
 		SteerLib::AStarPlannerNode InsertNode(CurrentPoint, TentativeScore, TentativeScore + Heuristic(CurrentPoint,goal), &FromNode);
 		NodeMap.erase(CurrentPoint);
 		NodeMap.emplace(CurrentPoint,InsertNode);
-		//std::cout << "After: " << NodeMap.at(CurrentPoint).g << '\n';
+	
+		if(CameFromNodeMap.count(InsertNode) != 0)
+		{
+					CameFromNodeMap.erase(InsertNode);
+		
+		}
+
+		CameFromNodeMap.emplace(InsertNode,FromNode);
+		//std::cout << InsertNode.point <<  "From" << FromNode.point <<'\n';
+		//for(auto elem : CameFromNodeMap)
+		//		{
+   					
+		//			std::cout << elem.first.point << " " << elem.second.point << "\n";
+		//		}
+		//while (std::cin.get() != '\n')
+		//	    {
+		//			 std::cout << '\n' <<'Press the Enter key to continue.';
+	//			} 
+
+
+		
 	}
 
 	double AStarPlanner::Manhattan(Util::Point FirstPoint, Util::Point SecondPoint)

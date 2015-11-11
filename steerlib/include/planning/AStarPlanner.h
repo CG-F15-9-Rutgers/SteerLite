@@ -105,12 +105,41 @@ namespace SteerLib
 					if (distanceBetween(a,b) < 0.001) {
 						return false;
 					}
-					return a < b;
+					if(a.x == b.x)
+					{
+						return a.z < b.z;
+
+					}
+					else
+					{
+					return a.x < b.x;
+					}
+
 				}
 			};
 
-			void NeighborNodes(Util::Point OriginPoint, Util::Point goal,	std::map<Util::Point,SteerLib::AStarPlannerNode,epsilonComparator>& NodeMap,std::vector<Util::Point>& ClosedSet, std::vector<Util::Point>& OpenSet);
-			void AddNode(Util::Point CurrentPoint, double cost, SteerLib::AStarPlannerNode FromNode, Util::Point goal, std::map<Util::Point,SteerLib::AStarPlannerNode,epsilonComparator>& NodeMap,std::vector<Util::Point>& ClosedSet, std::vector<Util::Point>& OpenSet);
+			struct NodeComparator
+			{
+				bool operator()(SteerLib::AStarPlannerNode a, SteerLib::AStarPlannerNode b) const
+				{
+					if (abs(distanceBetween(a.point,b.point)) < 0.001) {
+						return false;
+					}
+					if(a.point.x == b.point.x)
+					{
+						return a.point.z < b.point.z;
+
+					}
+					else
+					{
+					return a.point.x < b.point.x;
+					}
+				}
+			};
+
+
+			void NeighborNodes(Util::Point OriginPoint, Util::Point goal,	std::map<Util::Point,SteerLib::AStarPlannerNode,epsilonComparator>& NodeMap,std::vector<Util::Point>& ClosedSet, std::vector<Util::Point>& OpenSet, std::map<SteerLib::AStarPlannerNode, SteerLib::AStarPlannerNode, NodeComparator>& CameFromNodeMap);
+			void AddNode(Util::Point CurrentPoint, double cost, SteerLib::AStarPlannerNode FromNode, Util::Point goal, std::map<Util::Point,SteerLib::AStarPlannerNode,epsilonComparator>& NodeMap, std::vector<Util::Point>& ClosedSet, std::vector<Util::Point>& OpenSet,std::map<SteerLib::AStarPlannerNode, SteerLib::AStarPlannerNode, NodeComparator>& CameFromNodeMap);
 			double Manhattan(Util::Point FirstPoint, Util::Point SecondPoint);
 			double Heuristic(Util::Point a, Util::Point b);
 
