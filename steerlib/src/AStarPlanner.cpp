@@ -21,6 +21,7 @@
 #define OBSTACLE_CLEARANCE 1
 #define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
 #define MAX(X,Y) ((X) > (Y) ? (X) : (Y))
+#define USE_MANHATTAN_DISTANCE 1
 
 namespace SteerLib
 {
@@ -28,7 +29,7 @@ namespace SteerLib
 
 	AStarPlanner::~AStarPlanner(){}
 
-	bool AStarPlanner::canBeTraversed ( int id ) 
+	bool AStarPlanner::canBeTraversed ( int id )
 	{
 		double traversal_cost = 0;
 		int current_id = id;
@@ -52,7 +53,7 @@ namespace SteerLib
 			}
 		}
 
-		if ( traversal_cost > COLLISION_COST ) 
+		if ( traversal_cost > COLLISION_COST )
 			return false;
 		return true;
 	}
@@ -69,13 +70,9 @@ namespace SteerLib
 	{
 		gSpatialDatabase = _gSpatialDatabase;
 
-		int manhattan;
-
-		manhattan = 1;
+		int manhattan = 1;
 
 		std::map<Util::Point, SteerLib::AStarPlannerNode, epsilonComparator> NodeMap;
-		//std::map<Util::Point,SteerLib::AStarPlannerNode>::iterator NodeMapIt;
-
 
 		//TODO
 		//std::cout<<"\nIn A*";
@@ -102,12 +99,11 @@ namespace SteerLib
 		}
 
 		while(!OpenSet.empty())
-		{	//std::cout << OpenSet.size() << '\n';
-
+		{
 			//Get Node with the lowest Fscore
 
 			lowestFScore = NodeMap.at(OpenSet[0]).f;
-			lowestFIndex = 0; 
+			lowestFIndex = 0;
 
 			for( int i = 0; i< OpenSet.size(); i++)
 			{
@@ -128,13 +124,9 @@ namespace SteerLib
 				{
 					CurrentNode = *CurrentNode.parent;
 					agent_path.push_back(CurrentNode.point);
-
-
 				}
-				
-				
+
 				agent_path.push_back(start);
-				
 				return true;
 			}
 
@@ -142,7 +134,6 @@ namespace SteerLib
 			OpenSet.erase(OpenSet.begin() + lowestFIndex);
 
 			NeighborNodes(CurrentNode.point, goal,NodeMap,ClosedSet,OpenSet,manhattan);
-
 		}
 		return false;
 	}
@@ -167,12 +158,13 @@ namespace SteerLib
 		z = OriginNode.point.z;
 
 		Util::Point North = Util::Point(x,y,z+1);
-		Util::Point South = Util::Point(x,y,z-1); 
-		Util::Point East =  Util::Point(x+1,y,z); 
-		Util::Point West =  Util::Point(x-1,y,z); 
+		Util::Point South = Util::Point(x,y,z-1);
+		Util::Point East =  Util::Point(x+1,y,z);
+		Util::Point West =  Util::Point(x-1,y,z);
+
 		Util::Point NorthEast = Util::Point(x+1,y,z+1);
-		Util::Point SouthEast = Util::Point(x+1,y,z-1); 
-		Util::Point NorthWest = Util::Point(x-1,y,z+1); 
+		Util::Point SouthEast = Util::Point(x+1,y,z-1);
+		Util::Point NorthWest = Util::Point(x-1,y,z+1);
 		Util::Point SouthWest = Util::Point(x-1,y,z-1);
 
 		if(manhattan)
@@ -195,8 +187,6 @@ namespace SteerLib
 			AddNode(NorthWest, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
 			AddNode(SouthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
 		}
-
-		
 	}
 
 
@@ -219,14 +209,14 @@ namespace SteerLib
 			NodeMap.emplace(CurrentPoint,InsertNode);
 		}
 
-		if(std::find(ClosedSet.begin(), ClosedSet.end(), CurrentPoint) != ClosedSet.end()) 
+		if(std::find(ClosedSet.begin(), ClosedSet.end(), CurrentPoint) != ClosedSet.end())
 		{
 			return;
 		}
 		//std::cout << "did not return yet" << '\n';
 		TentativeScore = FromNode.g + distanceBetween(FromNode.point,CurrentPoint);
-		
-		if(std::find(OpenSet.begin(), OpenSet.end(), CurrentPoint) == OpenSet.end()) 
+
+		if(std::find(OpenSet.begin(), OpenSet.end(), CurrentPoint) == OpenSet.end())
 		{
 			OpenSet.push_back(CurrentPoint);
 			//std::cout << OpenSet.size() << '\n';
@@ -254,8 +244,7 @@ namespace SteerLib
 
 	double AStarPlanner::Manhattan(Util::Point FirstPoint, Util::Point SecondPoint)
 	{
-		double distance;
-		distance = abs(FirstPoint.x - SecondPoint.x) + abs(FirstPoint.y - SecondPoint.y) + abs(FirstPoint.z - SecondPoint.z);
+		Util::Vector diff = FirstPoint - SecondPoint;
+		return abs(diff.x) + abs(diff.y) + abs(diff.z);
 	}
 }
-
