@@ -21,7 +21,9 @@
 #define OBSTACLE_CLEARANCE 1
 #define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
 #define MAX(X,Y) ((X) > (Y) ? (X) : (Y))
-#define USE_MANHATTAN_DISTANCE 1
+
+// Set to false for Euclidean distance
+#define USE_MANHATTAN_DISTANCE true
 
 namespace SteerLib
 {
@@ -70,8 +72,6 @@ namespace SteerLib
 	{
 		gSpatialDatabase = _gSpatialDatabase;
 
-		int manhattan = 1;
-
 		std::map<Util::Point, SteerLib::AStarPlannerNode, epsilonComparator> NodeMap;
 
 		//TODO
@@ -85,18 +85,10 @@ namespace SteerLib
 		int lowestFScore = 0;
 		int lowestFIndex = 0;
 		double CostSoFar;
-		if(manhattan == 1)
-		{
-			SteerLib::AStarPlannerNode StartNode(start, 0,Manhattan(start,goal), nullptr);
-			NodeMap.emplace(start,StartNode);
-			OpenSet.push_back(StartNode.point);
-		}
-		else
-		{
-			SteerLib::AStarPlannerNode StartNode(start, 0,(double)distanceBetween(start,goal), nullptr);
-			NodeMap.emplace(start,StartNode);
-			OpenSet.push_back(StartNode.point);
-		}
+
+		SteerLib::AStarPlannerNode StartNode(start, 0, Heuristic(start,goal), nullptr);
+		NodeMap.emplace(start,StartNode);
+		OpenSet.push_back(StartNode.point);
 
 		while(!OpenSet.empty())
 		{
@@ -133,13 +125,13 @@ namespace SteerLib
 			ClosedSet.push_back(OpenSet[lowestFIndex]);
 			OpenSet.erase(OpenSet.begin() + lowestFIndex);
 
-			NeighborNodes(CurrentNode.point, goal,NodeMap,ClosedSet,OpenSet,manhattan);
+			NeighborNodes(CurrentNode.point, goal,NodeMap,ClosedSet,OpenSet);
 		}
 		return false;
 	}
 
 
-	void AStarPlanner::NeighborNodes(Util::Point OriginPoint, Util::Point goal,	std::map<Util::Point,SteerLib::AStarPlannerNode,epsilonComparator>& NodeMap,std::vector<Util::Point>& ClosedSet, std::vector<Util::Point>& OpenSet, int manhattan)
+	void AStarPlanner::NeighborNodes(Util::Point OriginPoint, Util::Point goal,	std::map<Util::Point,SteerLib::AStarPlannerNode,epsilonComparator>& NodeMap,std::vector<Util::Point>& ClosedSet, std::vector<Util::Point>& OpenSet)
 	{
 		int x;
 		int y;
@@ -162,35 +154,27 @@ namespace SteerLib
 		Util::Point East =  Util::Point(x+1,y,z);
 		Util::Point West =  Util::Point(x-1,y,z);
 
-		Util::Point NorthEast = Util::Point(x+1,y,z+1);
-		Util::Point SouthEast = Util::Point(x+1,y,z-1);
-		Util::Point NorthWest = Util::Point(x-1,y,z+1);
-		Util::Point SouthWest = Util::Point(x-1,y,z-1);
-
-		if(manhattan)
+		AddNode(North, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet);
+		AddNode(South, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet);
+		AddNode(East, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet);
+		AddNode(West, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet);
+		//std::cout << OpenSet.size() << '\n';
+		if(!USE_MANHATTAN_DISTANCE)
 		{
-			AddNode(North, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
-			AddNode(South, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
-			AddNode(East, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
-			AddNode(West, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
-			//std::cout << OpenSet.size() << '\n';
+			Util::Point NorthEast = Util::Point(x+1,y,z+1);
+			Util::Point SouthEast = Util::Point(x+1,y,z-1);
+			Util::Point NorthWest = Util::Point(x-1,y,z+1);
+			Util::Point SouthWest = Util::Point(x-1,y,z-1);
 
-		}
-		else
-		{
-			AddNode(North, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
-			AddNode(South, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
-			AddNode(East, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
-			AddNode(West, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
-			AddNode(NorthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
-			AddNode(SouthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
-			AddNode(NorthWest, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
-			AddNode(SouthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
+			AddNode(NorthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet);
+			AddNode(SouthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet);
+			AddNode(NorthWest, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet);
+			AddNode(SouthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet);
 		}
 	}
 
 
-	void AStarPlanner::AddNode(Util::Point CurrentPoint, double cost, SteerLib::AStarPlannerNode FromNode, Util::Point goal, std::map<Util::Point,SteerLib::AStarPlannerNode,epsilonComparator>& NodeMap, std::vector<Util::Point>& ClosedSet, std::vector<Util::Point>& OpenSet, int manhattan)
+	void AStarPlanner::AddNode(Util::Point CurrentPoint, double cost, SteerLib::AStarPlannerNode FromNode, Util::Point goal, std::map<Util::Point,SteerLib::AStarPlannerNode,epsilonComparator>& NodeMap, std::vector<Util::Point>& ClosedSet, std::vector<Util::Point>& OpenSet)
 	{
 		int NodeIndex;
 		float DistanceInBetween;
@@ -226,25 +210,26 @@ namespace SteerLib
 		{
 			return;
 		}
-		if(manhattan == 1)
-		{
-			//std::cout << "Before: " << NodeMap.at(CurrentPoint).g << '\n';
-			SteerLib::AStarPlannerNode InsertNode(CurrentPoint, TentativeScore, TentativeScore + Manhattan(CurrentPoint,goal), &FromNode);
-			NodeMap.erase(CurrentPoint);
-			NodeMap.emplace(CurrentPoint,InsertNode);
-			//std::cout << "After: " << NodeMap.at(CurrentPoint).g << '\n';
-		}
-		else
-		{
-			SteerLib::AStarPlannerNode InsertNode(CurrentPoint, TentativeScore, TentativeScore + (double)distanceBetween(CurrentPoint,goal), &FromNode);
-			NodeMap.erase(CurrentPoint);
-			NodeMap.emplace(CurrentPoint,InsertNode);
-		}
+
+		//std::cout << "Before: " << NodeMap.at(CurrentPoint).g << '\n';
+		SteerLib::AStarPlannerNode InsertNode(CurrentPoint, TentativeScore, TentativeScore + Heuristic(CurrentPoint,goal), &FromNode);
+		NodeMap.erase(CurrentPoint);
+		NodeMap.emplace(CurrentPoint,InsertNode);
+		//std::cout << "After: " << NodeMap.at(CurrentPoint).g << '\n';
 	}
 
 	double AStarPlanner::Manhattan(Util::Point FirstPoint, Util::Point SecondPoint)
 	{
 		Util::Vector diff = FirstPoint - SecondPoint;
 		return abs(diff.x) + abs(diff.y) + abs(diff.z);
+	}
+
+	double AStarPlanner::Heuristic(Util::Point a, Util::Point b)
+	{
+		if(USE_MANHATTAN_DISTANCE) {
+			return Manhattan(a,b);
+		} else {
+			return (double)distanceBetween(a,b);
+		}
 	}
 }
