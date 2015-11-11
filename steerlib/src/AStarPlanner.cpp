@@ -212,12 +212,22 @@ namespace SteerLib
 		double TentativeScore;
 
 		NodeIndex = gSpatialDatabase->getCellIndexFromLocation(CurrentPoint);
-
+		
 		if(!canBeTraversed (NodeIndex))
 		{
 			return;
 		}
 		
+		if(NodeMap.count(CurrentPoint) == 0)
+		{
+
+		SteerLib::AStarPlannerNode InsertNode(CurrentPoint, cost, cost, &FromNode);
+		NodeMap.emplace(CurrentPoint,InsertNode);
+
+
+		}
+
+
 		if(std::find(ClosedSet.begin(), ClosedSet.end(), CurrentPoint) != ClosedSet.end()) 
 		{
 			return;
@@ -231,52 +241,22 @@ namespace SteerLib
 			//std::cout << OpenSet.size() << '\n';
 
 		}
-		
-		//Now Check if Node is in map
-		
-		if(NodeMap.count(CurrentPoint) == 0)
+		else if(TentativeScore >=NodeMap.at(CurrentPoint).g)
 		{
-			if(TentativeScore<cost)
-			{
-				if(manhattan == 1)
-				{
+			return;
+			
+		}
+		if(manhattan == 1)
+		{
 				//std::cout << "Before: " << NodeMap.at(CurrentPoint).g << '\n';
 				SteerLib::AStarPlannerNode InsertNode(CurrentPoint, TentativeScore, TentativeScore + Manhattan(CurrentPoint,goal), &FromNode);
+				NodeMap.erase(CurrentPoint);
 				NodeMap.emplace(CurrentPoint,InsertNode);
 				//std::cout << "After: " << NodeMap.at(CurrentPoint).g << '\n';
-
-				}
-				else
-				{
-
-				SteerLib::AStarPlannerNode InsertNode(CurrentPoint, TentativeScore, TentativeScore + (double)distanceBetween(CurrentPoint,goal), &FromNode);
-				NodeMap.emplace(CurrentPoint,InsertNode);
-
-			
-
-				}
-
-			}
-
 
 		}
 		else
 		{
-			//std::cout << "else \n";
-			
-			if(TentativeScore<NodeMap.at(CurrentPoint).g)
-			{
-				if(manhattan == 1)
-				{
-				//std::cout << "Before: " << NodeMap.at(CurrentPoint).g << '\n';
-				SteerLib::AStarPlannerNode InsertNode(CurrentPoint, TentativeScore, TentativeScore + Manhattan(CurrentPoint,goal), &FromNode);
-				NodeMap.erase(CurrentPoint);
-				NodeMap.emplace(CurrentPoint,InsertNode);
-				//std::cout << "After: " << NodeMap.at(CurrentPoint).g << '\n';
-
-				}
-				else
-				{
 
 				SteerLib::AStarPlannerNode InsertNode(CurrentPoint, TentativeScore, TentativeScore + (double)distanceBetween(CurrentPoint,goal), &FromNode);
 				NodeMap.erase(CurrentPoint);
@@ -284,12 +264,10 @@ namespace SteerLib
 
 			
 
-				}
-
-			}
-
 		}
 
+			
+	
 		
 		
 	}
