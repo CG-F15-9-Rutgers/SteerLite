@@ -70,83 +70,102 @@ namespace SteerLib
 	{
 		gSpatialDatabase = _gSpatialDatabase;
 
-		//TODO
-		std::cout<<"\nIn A*";
+		int manhattan;
 
-		std::vector<SteerLib::AStarPlannerNode> ClosedSet;
-		std::vector<SteerLib::AStarPlannerNode> OpenSet;
-		std::vector<SteerLib::AStarPlannerNode> CameFrom;
-		std::vector<SteerLib::AStarPlannerNode> NeighborVector;
+		manhattan = 1;
+
+		std::map<Util::Point,SteerLib::AStarPlannerNode> NodeMap;
+		//std::map<Util::Point,SteerLib::AStarPlannerNode>::iterator NodeMapIt;
+
+
+		//TODO
+		//std::cout<<"\nIn A*";
+
+		std::vector<Util::Point> ClosedSet;
+		std::vector<Util::Point> OpenSet;
+		std::vector<Util::Point> CameFrom;
+		std::vector<Util::Point> NeighborVector;
+	
 
 		int lowestFScore = 0;
 		int lowestFIndex = 0;
 		double CostSoFar;
-		SteerLib::AStarPlannerNode StartNode(start, 0,0, nullptr);
-		OpenSet.push_back(StartNode);
+		if(manhattan == 1)
+		{
+		SteerLib::AStarPlannerNode StartNode(start, 0,Manhattan(start,goal), nullptr);
+		NodeMap.emplace(start,StartNode);
+		OpenSet.push_back(StartNode.point);
+
+		}
+		else
+		{
+		SteerLib::AStarPlannerNode StartNode(start, 0,(double)distanceBetween(start,goal), nullptr);
+		NodeMap.emplace(start,StartNode);
+		OpenSet.push_back(StartNode.point);
+
+		}
+
 
 		while(!OpenSet.empty())
-		{
+		{	//std::cout << OpenSet.size() << '\n';
+
 			//Get Node with the lowest Fscore
 
-			lowestFScore = OpenSet[0].f;
+			lowestFScore = NodeMap.at(OpenSet[0]).f;
 			lowestFIndex = 0; 
 
 			for( int i = 0; i< OpenSet.size(); i++)
 			{
-				if(OpenSet[i].f < lowestFScore)
+				if(NodeMap.at(OpenSet[i]).f < lowestFScore)
 				{
-					lowestFScore = OpenSet[i].f;
+					lowestFScore = NodeMap.at(OpenSet[i]).f;
 					lowestFIndex = i;
 				}
 			}
 
-			SteerLib::AStarPlannerNode CurrentNode = OpenSet[lowestFIndex];
+			SteerLib::AStarPlannerNode CurrentNode = NodeMap.at(OpenSet[lowestFIndex]);
 
 			if(CurrentNode.point == goal)
 			{
-				//TODO reconstruct path
+				agent_path.push_back(CurrentNode.point);
+
+				while(CurrentNode.parent != nullptr)
+				{
+					CurrentNode = *CurrentNode.parent;
+					agent_path.push_back(CurrentNode.point);
+
+
+				}
+				
+				
+				agent_path.push_back(start);
+				
+				return true;
 			}
 
 			ClosedSet.push_back(OpenSet[lowestFIndex]);
 			OpenSet.erase(OpenSet.begin() + lowestFIndex);
 
-			NeighborVector = NeighborNodes(CurrentNode, goal);
+			NeighborNodes(CurrentNode.point, goal,NodeMap,ClosedSet,OpenSet,manhattan);
 
-			for( int NeighborIndex = 0; NeighborIndex< NeighborVector.size(); NeighborIndex++)
-			{
-				//Neighbor in ClosedSet
-				if(std::find(ClosedSet.begin(), ClosedSet.end(), NeighborVector[NeighborIndex]) != ClosedSet.end()) 
-				{
-					continue;
-				}
-
-				//CostSoFar = CurrentNode.g + DistanceBetween(
-
-				//Neighbor not in OpenSet
-				if(std::find(OpenSet.begin(), OpenSet.end(), NeighborVector[NeighborIndex]) != OpenSet.end()) 
-				{
-					OpenSet.push_back(NeighborVector[NeighborIndex]);
-				}
-				//else if(NeighborVector[NeighborIndex].g >=
-
-			}
 		}
 		return false;
 	}
 
 
-	std::vector<SteerLib::AStarPlannerNode> AStarPlanner::NeighborNodes(SteerLib::AStarPlannerNode OriginNode, Util::Point goal)
+	void AStarPlanner::NeighborNodes(Util::Point OriginPoint, Util::Point goal,	std::map<Util::Point,SteerLib::AStarPlannerNode>& NodeMap,std::vector<Util::Point>& ClosedSet, std::vector<Util::Point>& OpenSet, int manhattan)
 	{
 		int x;
 		int y;
 		int z;
 		double NonDiagonalCost;
 		double DiagonalCost;
+		//std::cout << "In Planner" << '\n';
 
-		DiagonalCost = sqrt(2);
-		NonDiagonalCost = 1;
+		SteerLib::AStarPlannerNode OriginNode = NodeMap.at(OriginPoint);
 
-		std::vector<SteerLib::AStarPlannerNode> NeighborVector;
+		DiagonalCost =std::numeric_limits<double>::infinity();
+		NonDiagonalCost =std::numeric_limits<double>::infinity();
 
 		x = OriginNode.point.x;
 		y = OriginNode.point.y;
@@ -161,23 +180,36 @@ namespace SteerLib
 		Util::Point NorthWest = Util::Point(x-1,y,z+1); 
 		Util::Point SouthWest = Util::Point(x-1,y,z-1);
 
-		AddNode(North, NonDiagonalCost, OriginNode, NeighborVector, goal);
-		AddNode(South, NonDiagonalCost, OriginNode, NeighborVector, goal);
-		AddNode(East, NonDiagonalCost, OriginNode, NeighborVector, goal);
-		AddNode(West, NonDiagonalCost, OriginNode, NeighborVector, goal);
-		AddNode(NorthEast, DiagonalCost, OriginNode, NeighborVector, goal);
-		AddNode(SouthEast, DiagonalCost, OriginNode, NeighborVector, goal);
-		AddNode(NorthWest, DiagonalCost, OriginNode, NeighborVector, goal);
-		AddNode(SouthEast, DiagonalCost, OriginNode, NeighborVector, goal);
+		if(manhattan)
+		{
+			AddNode(North, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
+			AddNode(South, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
+			AddNode(East, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
+			AddNode(West, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
+			//std::cout << OpenSet.size() << '\n';
 
-		return NeighborVector;
+		}
+		else
+		{
+			AddNode(North, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
+			AddNode(South, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
+			AddNode(East, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
+			AddNode(West, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
+			AddNode(NorthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
+			AddNode(SouthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
+			AddNode(NorthWest, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
+			AddNode(SouthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, manhattan);
+		}
+
+		
 	}
 
 
-	void AStarPlanner::AddNode(Util::Point CurrentPoint, double cost, SteerLib::AStarPlannerNode FromNode, std::vector<SteerLib::AStarPlannerNode>& NeighborVector, Util::Point goal)
+	void AStarPlanner::AddNode(Util::Point CurrentPoint, double cost, SteerLib::AStarPlannerNode FromNode, Util::Point goal, std::map<Util::Point,SteerLib::AStarPlannerNode>& NodeMap, std::vector<Util::Point>& ClosedSet, std::vector<Util::Point>& OpenSet, int manhattan)
 	{
 		int NodeIndex;
 		float DistanceInBetween;
+		double TentativeScore;
 
 		NodeIndex = gSpatialDatabase->getCellIndexFromLocation(CurrentPoint);
 
@@ -185,12 +217,91 @@ namespace SteerLib
 		{
 			return;
 		}
+		
+		if(std::find(ClosedSet.begin(), ClosedSet.end(), CurrentPoint) != ClosedSet.end()) 
+		{
+			return;
+		}
+		//std::cout << "did not return yet" << '\n';
+		TentativeScore = FromNode.g + distanceBetween(FromNode.point,CurrentPoint);
+		
+		if(std::find(OpenSet.begin(), OpenSet.end(), CurrentPoint) == OpenSet.end()) 
+		{
+			OpenSet.push_back(CurrentPoint);
+			//std::cout << OpenSet.size() << '\n';
+
+		}
+		
+		//Now Check if Node is in map
+		
+		if(NodeMap.count(CurrentPoint) == 0)
+		{
+			if(TentativeScore<cost)
+			{
+				if(manhattan == 1)
+				{
+				//std::cout << "Before: " << NodeMap.at(CurrentPoint).g << '\n';
+				SteerLib::AStarPlannerNode InsertNode(CurrentPoint, TentativeScore, TentativeScore + Manhattan(CurrentPoint,goal), &FromNode);
+				NodeMap.emplace(CurrentPoint,InsertNode);
+				//std::cout << "After: " << NodeMap.at(CurrentPoint).g << '\n';
+
+				}
+				else
+				{
+
+				SteerLib::AStarPlannerNode InsertNode(CurrentPoint, TentativeScore, TentativeScore + (double)distanceBetween(CurrentPoint,goal), &FromNode);
+				NodeMap.emplace(CurrentPoint,InsertNode);
+
+			
+
+				}
+
+			}
+
+
+		}
 		else
 		{
-			DistanceInBetween = distanceBetween(CurrentPoint, goal);
-			SteerLib::AStarPlannerNode InsertNode(CurrentPoint, FromNode.g + cost, (double)DistanceInBetween, &FromNode);
-			NeighborVector.push_back(InsertNode);
+			//std::cout << "else \n";
+			
+			if(TentativeScore<NodeMap.at(CurrentPoint).g)
+			{
+				if(manhattan == 1)
+				{
+				//std::cout << "Before: " << NodeMap.at(CurrentPoint).g << '\n';
+				SteerLib::AStarPlannerNode InsertNode(CurrentPoint, TentativeScore, TentativeScore + Manhattan(CurrentPoint,goal), &FromNode);
+				NodeMap.erase(CurrentPoint);
+				NodeMap.emplace(CurrentPoint,InsertNode);
+				//std::cout << "After: " << NodeMap.at(CurrentPoint).g << '\n';
+
+				}
+				else
+				{
+
+				SteerLib::AStarPlannerNode InsertNode(CurrentPoint, TentativeScore, TentativeScore + (double)distanceBetween(CurrentPoint,goal), &FromNode);
+				NodeMap.erase(CurrentPoint);
+				NodeMap.emplace(CurrentPoint,InsertNode);
+
+			
+
+				}
+
+			}
+
 		}
 
+		
+		
 	}
+
+	double AStarPlanner::Manhattan(Util::Point FirstPoint, Util::Point SecondPoint)
+	{
+
+		double distance;
+		distance = abs(FirstPoint.x - SecondPoint.x) + abs(FirstPoint.y - SecondPoint.y) + abs(FirstPoint.z - SecondPoint.z);
+
+
+	}
+	
 }
+

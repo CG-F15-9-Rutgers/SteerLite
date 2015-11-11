@@ -50,7 +50,7 @@ namespace SteerLib
 		        return this->f > other.f;
 		    }
 		    bool operator==(AStarPlannerNode other) const
-		    {
+	    {
 		        return ((this->point.x == other.point.x) && (this->point.z == other.point.z));
 		    }
 
@@ -96,9 +96,10 @@ namespace SteerLib
 			*/
 
 			bool computePath(std::vector<Util::Point>& agent_path, Util::Point start, Util::Point goal, SteerLib::GridDatabase2D * _gSpatialDatabase, bool append_to_path = false);
+			void NeighborNodes(Util::Point OriginPoint, Util::Point goal,	std::map<Util::Point,SteerLib::AStarPlannerNode>& NodeMap,std::vector<Util::Point>& ClosedSet, std::vector<Util::Point>& OpenSet, int manhattan);	
+			void AddNode(Util::Point CurrentPoint, double cost, SteerLib::AStarPlannerNode FromNode, Util::Point goal, std::map<Util::Point,SteerLib::AStarPlannerNode>& NodeMap,std::vector<Util::Point>& ClosedSet, std::vector<Util::Point>& OpenSet, int manhattan);			
+			double Manhattan(Util::Point FirstPoint, Util::Point SecondPoint);
 
-			std::vector<SteerLib::AStarPlannerNode> NeighborNodes(SteerLib::AStarPlannerNode OriginNode, Util::Point goal);
-			void AddNode(Util::Point CurrentPoint, double cost, SteerLib::AStarPlannerNode FromNode, std::vector<SteerLib::AStarPlannerNode>& NeighborVector, Util::Point goal);
 		private:
 			SteerLib::GridDatabase2D * gSpatialDatabase;
 	};
