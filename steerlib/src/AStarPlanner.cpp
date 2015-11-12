@@ -23,7 +23,15 @@
 #define MAX(X,Y) ((X) > (Y) ? (X) : (Y))
 
 // Set to false for Euclidean distance
-#define USE_MANHATTAN_DISTANCE true
+#define USE_MANHATTAN_DISTANCE false
+#define PRINT_RESULTS false
+// 0 for defualt handling
+// 1 for bigger G value
+// -1 for smaller G value
+#define NextExpandingNodeTie 0
+#define WEIGHT 1
+#define PART3 false
+
 
 namespace SteerLib
 {
@@ -85,9 +93,6 @@ namespace SteerLib
 		agent_path.clear();
 		std::map<SteerLib::AStarPlannerNode, SteerLib::AStarPlannerNode, NodeComparator> CameFromNodeMap;
 
-		//TODO
-		//std::cout<<"\nIn A*";
-
 		std::vector<Util::Point> ClosedSet;
 		std::vector<Util::Point> OpenSet;
 		std::vector<Util::Point> CameFrom;
@@ -95,7 +100,9 @@ namespace SteerLib
 
 		int lowestFScore = 0;
 		int lowestFIndex = 0;
+		double GScore;
 		double CostSoFar;
+		double TotalLength;
 
 		SteerLib::AStarPlannerNode StartNode(start, 0, Heuristic(start,goal), nullptr);
 		NodeMap.emplace(start,StartNode);
@@ -106,6 +113,7 @@ namespace SteerLib
 			//Get Node with the lowest Fscore
 
 			lowestFScore = NodeMap.at(OpenSet[0]).f;
+			GScore = NodeMap.at(OpenSet[0]).g;
 			lowestFIndex = 0;
 
 			for( int i = 0; i< OpenSet.size(); i++)
@@ -113,7 +121,32 @@ namespace SteerLib
 				if(NodeMap.at(OpenSet[i]).f < lowestFScore)
 				{
 					lowestFScore = NodeMap.at(OpenSet[i]).f;
+					GScore = NodeMap.at(OpenSet[i]).g;
 					lowestFIndex = i;
+				}
+				else if(NodeMap.at(OpenSet[i]).f == lowestFScore)
+				{
+					if(NextExpandingNodeTie == 1)
+					{
+						if(NodeMap.at(OpenSet[i]).f > GScore)
+						{
+							lowestFScore = NodeMap.at(OpenSet[i]).f;
+							GScore = NodeMap.at(OpenSet[i]).g;
+							lowestFIndex = i;
+						}
+					}
+					else if(NextExpandingNodeTie == -1)
+					{
+						if(NodeMap.at(OpenSet[i]).f < GScore)
+						{
+							lowestFScore = NodeMap.at(OpenSet[i]).f;
+							GScore = NodeMap.at(OpenSet[i]).g;
+							lowestFIndex = i;
+						}
+						
+						
+					}
+					
 				}
 			}
 
@@ -121,6 +154,7 @@ namespace SteerLib
 
 			if(CurrentNode.point == goal)
 			{
+				TotalLength = CurrentNode.g; 
 				agent_path.push_back(CurrentNode.point);
 
 			
@@ -135,6 +169,14 @@ namespace SteerLib
 				agent_path.push_back(start);
 
 				std::reverse(agent_path.begin(), agent_path.end());
+				
+				if(PRINT_RESULTS)
+				{
+					
+					std::cout << "\n Length of Solution Path " << TotalLength <<'\n';
+					std::cout << "Number of Expanded Nodes " << ClosedSet.size() <<'\n';
+					
+				}
 				
 				return true;
 			}
@@ -228,35 +270,7 @@ namespace SteerLib
 		
 		
 
-		//x = OriginNode.point.x;
-		//y = OriginNode.point.y;
-		//z = OriginNode.point.z;
-
-		//Util::Point North = Util::Point(x,y,z+1);
-		//Util::Point South = Util::Point(x,y,z-1);
-		//Util::Point East =  Util::Point(x+1,y,z);
-		//Util::Point West =  Util::Point(x-1,y,z);
-
-		//std::cout << "Start " << OriginNode.point << '\n';
-
-
-		//AddNode(North, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet,CameFromNodeMap);
-		//AddNode(South, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet,CameFromNodeMap);
-		//AddNode(East, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, CameFromNodeMap);
-		//AddNode(West, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, CameFromNodeMap);
-		
-		//if(!USE_MANHATTAN_DISTANCE)
-		//{
-		//	Util::Point NorthEast = Util::Point(x+1,y,z+1);
-		//	Util::Point SouthEast = Util::Point(x+1,y,z-1);
-		//	Util::Point NorthWest = Util::Point(x-1,y,z+1);
-		//	Util::Point SouthWest = Util::Point(x-1,y,z-1);
-
-		//	AddNode(NorthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, CameFromNodeMap);
-		//	AddNode(SouthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, CameFromNodeMap);
-		//	AddNode(NorthWest, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, CameFromNodeMap);
-		//	AddNode(SouthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, CameFromNodeMap);
-		//}
+	
 		
 		
 	}
@@ -288,6 +302,14 @@ namespace SteerLib
 		}
 		
 		TentativeScore = FromNode.g + distanceBetween(FromNode.point,CurrentPoint);
+		
+			if(PART3)
+			{
+				if(CurrentPoint.x != FromNode.point.x && CurrentPoint.z != FromNode.point.z) //if diagonal
+				{
+					TentativeScore = FromNode.g +  2*distanceBetween(FromNode.point,CurrentPoint);
+				}
+			}
 
 		if(std::find(OpenSet.begin(), OpenSet.end(), CurrentPoint) == OpenSet.end())
 		{
@@ -334,9 +356,9 @@ namespace SteerLib
 	double AStarPlanner::Heuristic(Util::Point a, Util::Point b)
 	{
 		if(USE_MANHATTAN_DISTANCE) {
-			return Manhattan(a,b);
+			return WEIGHT*Manhattan(a,b);
 		} else {
-			return (double)distanceBetween(a,b);
+			return WEIGHT*(double)distanceBetween(a,b);
 		}
 	}
 }
