@@ -23,7 +23,7 @@
 #define MAX(X,Y) ((X) > (Y) ? (X) : (Y))
 
 // Set to false for Euclidean distance
-#define USE_MANHATTAN_DISTANCE false
+#define USE_MANHATTAN_DISTANCE true
 
 namespace SteerLib
 {
@@ -67,10 +67,19 @@ namespace SteerLib
 		gSpatialDatabase->getLocationFromIndex(id, p);
 		return p;
 	}
+	
+	int AStarPlanner::getIndexFromPoint(Util::Point p)
+	{
+		return gSpatialDatabase->getCellIndexFromLocation(p);
+	}
 
 	bool AStarPlanner::computePath(std::vector<Util::Point>& agent_path,  Util::Point start, Util::Point goal, SteerLib::GridDatabase2D * _gSpatialDatabase, bool append_to_path)
 	{
 		gSpatialDatabase = _gSpatialDatabase;
+		
+		
+		start = getPointFromGridIndex(getIndexFromPoint(start));
+		goal = getPointFromGridIndex(getIndexFromPoint(goal));
 
 		std::map<Util::Point, SteerLib::AStarPlannerNode, epsilonComparator> NodeMap;
 		agent_path.clear();
@@ -137,6 +146,61 @@ namespace SteerLib
 		}
 		return false;
 	}
+	
+	std::vector<Util::Point> AStarPlanner::GetNeighborPoints(Util::Point OriginPoint)
+	{
+		int NodeIndex; 
+		
+		unsigned int x,z;
+		
+		NodeIndex = getIndexFromPoint(OriginPoint);
+		
+		std::vector<Util::Point> NeighborPoints;
+		Util::Point NeighborPoint;
+		
+		gSpatialDatabase->getGridCoordinatesFromIndex(NodeIndex,x,z);
+		
+		int XRangeMin, XRangeMax, ZRangeMin, ZRangeMax;
+
+		XRangeMin = MAX(x-1, 0);
+		XRangeMax = MIN(x+1, gSpatialDatabase->getNumCellsX());
+
+		ZRangeMin = MAX(z-1, 0);
+		ZRangeMax = MIN(z+1, gSpatialDatabase->getNumCellsZ());
+		
+		for (int i = XRangeMin; i<=XRangeMax; i+=GRID_STEP)
+		{
+			for (int j = ZRangeMin; j<=ZRangeMax; j+=GRID_STEP)
+			{
+				int index = gSpatialDatabase->getCellIndexFromGridCoords( i, j );
+				if(index != NodeIndex)
+				{
+					NeighborPoint = getPointFromGridIndex(index);
+					
+					if(USE_MANHATTAN_DISTANCE)
+					{
+						if(NeighborPoint.x == OriginPoint.x || NeighborPoint.z == OriginPoint.z)
+						{
+							NeighborPoints.push_back(NeighborPoint);
+							
+						}
+					}
+					else
+					{
+						
+					NeighborPoints.push_back(NeighborPoint);
+					
+					}
+				}
+			}
+		}
+		
+		return NeighborPoints;
+		
+		
+		
+		
+	}
 
 
 	void AStarPlanner::NeighborNodes(Util::Point OriginPoint, Util::Point goal,	std::map<Util::Point,SteerLib::AStarPlannerNode,epsilonComparator>& NodeMap,std::vector<Util::Point>& ClosedSet, std::vector<Util::Point>& OpenSet, std::map<SteerLib::AStarPlannerNode, SteerLib::AStarPlannerNode, NodeComparator>& CameFromNodeMap)
@@ -144,43 +208,57 @@ namespace SteerLib
 		int x;
 		int y;
 		int z;
-		double NonDiagonalCost;
-		double DiagonalCost;
+		double InitialCost;
+		//double DiagonalCost;
 		
 		SteerLib::AStarPlannerNode OriginNode = NodeMap.at(OriginPoint);
 
-		DiagonalCost =std::numeric_limits<double>::infinity();
-		NonDiagonalCost =std::numeric_limits<double>::infinity();
+		InitialCost =std::numeric_limits<double>::infinity();
+		//NonDiagonalCost =std::numeric_limits<double>::infinity();
+		
+		std::vector<Util::Point> NeighborPoints;
+		
+		NeighborPoints = GetNeighborPoints(OriginPoint);
+		
+		for( int i = 0; i<NeighborPoints.size(); i++)
+		{
+			AddNode(NeighborPoints[i],InitialCost,OriginNode,goal, NodeMap,ClosedSet, OpenSet, CameFromNodeMap);
+			
+		}
+		
+		
 
-		x = OriginNode.point.x;
-		y = OriginNode.point.y;
-		z = OriginNode.point.z;
+		//x = OriginNode.point.x;
+		//y = OriginNode.point.y;
+		//z = OriginNode.point.z;
 
-		Util::Point North = Util::Point(x,y,z+1);
-		Util::Point South = Util::Point(x,y,z-1);
-		Util::Point East =  Util::Point(x+1,y,z);
-		Util::Point West =  Util::Point(x-1,y,z);
+		//Util::Point North = Util::Point(x,y,z+1);
+		//Util::Point South = Util::Point(x,y,z-1);
+		//Util::Point East =  Util::Point(x+1,y,z);
+		//Util::Point West =  Util::Point(x-1,y,z);
 
 		//std::cout << "Start " << OriginNode.point << '\n';
 
 
-		AddNode(North, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet,CameFromNodeMap);
-		AddNode(South, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet,CameFromNodeMap);
-		AddNode(East, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, CameFromNodeMap);
-		AddNode(West, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, CameFromNodeMap);
+		//AddNode(North, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet,CameFromNodeMap);
+		//AddNode(South, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet,CameFromNodeMap);
+		//AddNode(East, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, CameFromNodeMap);
+		//AddNode(West, NonDiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, CameFromNodeMap);
 		
-		if(!USE_MANHATTAN_DISTANCE)
-		{
-			Util::Point NorthEast = Util::Point(x+1,y,z+1);
-			Util::Point SouthEast = Util::Point(x+1,y,z-1);
-			Util::Point NorthWest = Util::Point(x-1,y,z+1);
-			Util::Point SouthWest = Util::Point(x-1,y,z-1);
+		//if(!USE_MANHATTAN_DISTANCE)
+		//{
+		//	Util::Point NorthEast = Util::Point(x+1,y,z+1);
+		//	Util::Point SouthEast = Util::Point(x+1,y,z-1);
+		//	Util::Point NorthWest = Util::Point(x-1,y,z+1);
+		//	Util::Point SouthWest = Util::Point(x-1,y,z-1);
 
-			AddNode(NorthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, CameFromNodeMap);
-			AddNode(SouthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, CameFromNodeMap);
-			AddNode(NorthWest, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, CameFromNodeMap);
-			AddNode(SouthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, CameFromNodeMap);
-		}
+		//	AddNode(NorthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, CameFromNodeMap);
+		//	AddNode(SouthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, CameFromNodeMap);
+		//	AddNode(NorthWest, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, CameFromNodeMap);
+		//	AddNode(SouthEast, DiagonalCost, OriginNode, goal, NodeMap, ClosedSet, OpenSet, CameFromNodeMap);
+		//}
+		
+		
 	}
 
 
