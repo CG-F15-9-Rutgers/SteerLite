@@ -102,6 +102,10 @@ void SocialForcesAgent::reset(const SteerLib::AgentInitialConditions & initialCo
 	_forward = normalize(initialConditions.direction);
 	_radius = initialConditions.radius;
 	_velocity = initialConditions.speed * _forward;
+	
+	PathOfTestCase = initialConditions.TestCasePath;
+	
+	//std::cout << TestCasePath << "\n";
 	// std::cout << "inital colour of agent " << initialConditions.color << std::endl;
 	if ( initialConditions.colorSet == true )
 	{
@@ -285,6 +289,7 @@ Util::Vector SocialForcesAgent::calcProximityForce(float dt)
 
 Vector SocialForcesAgent::calcGoalForce(Vector _goalDirection, float _dt)
 {
+	//std::cout << PathOfTestCase << "\n";
     //std::cerr<<"<<<calcGoalForce>>> Please Implement my body\n";
     //Util::Vector prefForce = ((_goalDirection*PERFERED_SPEED - velocity()) / _dt);
    // Util::Vector prefForce = (((_goalDirection * PERFERED_SPEED) - velocity()) / (_SocialForcesParams.sf_acceleration/_dt)) + velocity();

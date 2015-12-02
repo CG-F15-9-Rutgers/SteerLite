@@ -29,6 +29,7 @@ void TestCaseReader::readTestCaseFromFile( const std::string & testCaseFilename 
 	_header.passingCriteria = "";
 	_header.version = "";
 	_header.worldBounds = AxisAlignedBox(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	TestCaseFilePath = testCaseFilename;
 
 
 	//

@@ -363,6 +363,8 @@ namespace SteerLib {
 
 		/// Data read directly from the XML test case header tag
 		TestCaseHeader _header;
+		///Path to the TestCase file
+		std::string TestCaseFilePath;
 		/// The list of suggested camera views found in the test case
 		std::vector<CameraView> _cameraViews;
 		/// Initial conditions of all agents

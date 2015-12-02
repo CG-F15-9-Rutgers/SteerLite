@@ -73,6 +73,7 @@ class SocialForcesAgent : public SteerLib::AgentInterface
         // void _doEulerStep(const Util::Vector & steeringDecisionForce, float dt);
 
         SocialForcesParameters _SocialForcesParams;
+ 		std::string PathOfTestCase;
 
         /**
              * \brief   Updates the three-dimensional position and three-dimensional velocity of this agent.
@@ -108,7 +109,7 @@ class SocialForcesAgent : public SteerLib::AgentInterface
         bool reachedCurrentWaypoint();
         void updateMidTermPath();
         bool hasLineOfSightTo(Util::Point point);
-
+		//std::string _TestCaseName;
 
         void calcNextStep(float dt);
         Util::Vector calcRepulsionForce(float dt);

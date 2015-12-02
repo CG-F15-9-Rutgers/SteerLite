@@ -898,6 +898,7 @@ void TestCaseReaderPrivate::_initAgentInitialConditions( AgentInitialConditions 
 	a.position = agent.position;
 	a.colorSet = agent.colorSet;
 	a.color = agent.color;
+	a.TestCasePath = TestCaseFilePath;
 
 	if (agent.isDirectionRandom) {
 		// choose a random number;
