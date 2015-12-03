@@ -14,11 +14,11 @@
 
 // #include "testcaseio/Behaviour.h"
 
-#define MAX_SPEED 2.6f
+#define MAX_SPEED 2.6
 #define PREFERED_SPEED 1.33 // TODO not added to parameters yet.
 
 
-#define ACCELERATION 0.5 // = v/A
+#define ACCELERATION 0.5 // = v/A 0.5
 #define PERSONAL_SPACE_THRESHOLD 0.3 // not defined in HiDAC papaer
 #define AGENT_REPULSION_IMPORTANCE 0.3 // in HiDAC
 #define QUERY_RADIUS 3.0f // not defined in paper
@@ -39,7 +39,7 @@
 #define GOAL_THRESHOLD_MULTIPLIER 2.5
 
 #define USE_PLANNING 1
-// #define DRAW_ANNOTATIONS 1
+//#define DRAW_ANNOTATIONS 1
 
 // #define _DEBUG_ 1
 namespace SocialForcesGlobals {

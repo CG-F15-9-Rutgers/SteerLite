@@ -5,7 +5,7 @@
 // See license.txt for complete license.
 //
 
-
+#include "SteerLib.h"
 #include "SocialForcesAgent.h"
 #include "SocialForcesAIModule.h"
 #include "SocialForces_Parameters.h"
@@ -84,7 +84,7 @@ void SocialForcesAgent::reset(const SteerLib::AgentInitialConditions & initialCo
 {
 	// compute the "old" bounding box of the agent before it is reset.  its OK that it will be invalid if the agent was previously disabled
 	// because the value is not used in that case.
-	// std::cout << "resetting agent " << this << std::endl;
+	 //std::cout << "resetting agent " << "\n";
 	_waypoints.clear();
 	_midTermPath.clear();
 
@@ -163,6 +163,9 @@ void SocialForcesAgent::reset(const SteerLib::AgentInitialConditions & initialCo
 		}
 	}
 
+	//computePlan();
+	//std::cout << initialConditions.goals.size() << "\n";
+
 	runLongTermPlanning();
 
 	// std::cout << "first waypoint: " << _waypoints.front() << " agents position: " << position() << std::endl;
@@ -207,6 +210,48 @@ void SocialForcesAgent::reset(const SteerLib::AgentInitialConditions & initialCo
 	assert(_forward.length()!=0.0f);
 	assert(_goalQueue.size() != 0);
 	assert(_radius != 0.0f);
+}
+
+void SocialForcesAgent::computePlan()
+{
+	std::cout<<"\nComputing agent plan ";
+	Util::Point global_goal = _goalQueue.front().targetLocation;
+	std::vector<Util::Point> agentPath;
+	Util::Point pos =  position();
+	if(astar.computePath(agentPath,pos,_goalQueue.front().targetLocation,gSpatialDatabase))
+	{
+		//std::cout << agentPath.size() << "\n";
+		
+		while(!_goalQueue.empty())
+			_goalQueue.pop();
+		
+		for(int i=0;i<agentPath.size();++i)
+		{
+			SteerLib::AgentGoalInfo goal_path_pt;
+			goal_path_pt.targetLocation = agentPath[i];
+			_goalQueue.push(goal_path_pt);
+		}
+		SteerLib::AgentGoalInfo goal_path_pt;
+		goal_path_pt.targetLocation = global_goal;
+		_goalQueue.push(goal_path_pt);
+		//std::cout << agentPath.size() << "\n";
+	if(agentPath.size()>0)
+	{
+		for(int i = 1; i<agentPath.size(); ++i)
+		{
+			Util::DrawLib::drawLine(agentPath[i-1], agentPath[i], Util::Color(1.0f, 0.0f, 0.0f), 2);
+		}
+		//Util::DrawLib::drawCircle(__path[__path.size()-1], Util::Color(0.0f, 1.0f, 0.0f));
+	}
+
+	}
+	// else
+	// {
+	// 	for(int i = 0;i<20;++i)
+	// 		_goalQueue.push(_goalQueue.front());
+	// }
+
+
 }
 
 
@@ -561,6 +606,7 @@ bool SocialForcesAgent::hasLineOfSightTo(Util::Point target)
 
 void SocialForcesAgent::updateAI(float timeStamp, float dt, unsigned int frameNumber)
 {
+	 //std::cout << "updating";
 	// std::cout << "_SocialForcesParams.rvo_max_speed " << _SocialForcesParams._SocialForcesParams.rvo_max_speed << std::endl;
 	Util::AutomaticFunctionProfiler profileThisFunction( &SocialForcesGlobals::gPhaseProfilers->aiProfiler );
 	if (!enabled())
@@ -754,8 +800,9 @@ bool SocialForcesAgent::runLongTermPlanning()
 	std::vector<Util::Point> agentPath;
 	Util::Point pos =  position();
 
-	if ( !gSpatialDatabase->findPath(pos, _goalQueue.front().targetLocation,
-			agentPath, (unsigned int) 50000))
+	//if ( !gSpatialDatabase->findPath(pos, _goalQueue.front().targetLocation,
+	//		agentPath, (unsigned int) 50000))
+	if(!astar.computePath(agentPath,pos,_goalQueue.front().targetLocation,gSpatialDatabase))
 	{
 		return false;
 	}
@@ -768,6 +815,15 @@ bool SocialForcesAgent::runLongTermPlanning()
 			_waypoints.push_back(agentPath.at(i));
 		}
 	}
+	if(agentPath.size()>0)
+	{
+		for(int i = 1; i<agentPath.size(); ++i)
+		{
+			Util::DrawLib::drawLine(agentPath[i-1], agentPath[i], Util::Color(1.0f, 0.0f, 0.0f), 2);
+		}
+		//Util::DrawLib::drawCircle(__path[__path.size()-1], Util::Color(0.0f, 1.0f, 0.0f));
+	}
+
 	return true;
 }
 
@@ -902,11 +958,6 @@ void SocialForcesAgent::draw()
 		{
 			//DrawLib::drawLine(_waypoints.at(i), _waypoints.at(i+1), gBlack);
 		}
-	}
-
-	for (int i=0; i < (_waypoints.size()); i++)
-	{
-		DrawLib::drawStar(_waypoints.at(i), Util::Vector(1,0,0), 0.34f, gBlue);
 	}
 
 	for (int i=0; ( _midTermPath.size() > 1 ) && (i < (_midTermPath.size() - 1)); i++)
