@@ -170,9 +170,18 @@ void SocialForcesAgent::reset(const SteerLib::AgentInitialConditions & initialCo
 		
 		runAStarPlanning();
 	}
+	else if(PathOfTestCase.find("plane_egress") != std::string::npos)
+        {
+            hardCodePathEgress();   
+        }
+        else if(PathOfTestCase.find("plane_ingress") != std::string::npos)
+        {
+            hardCodePathIngress();   
+        }
 	else
 	{
 	runLongTermPlanning();
+            
 	}
 	// std::cout << "first waypoint: " << _waypoints.front() << " agents position: " << position() << std::endl;
 	/*
@@ -755,6 +764,132 @@ void SocialForcesAgent::updateLocalTarget()
  * finds a path to the current goal
  * puts that path in midTermPath
  */
+bool SocialForcesAgent::hardCodePathEgress()
+{
+    std::vector<Util::Point> agentPath;
+
+   if(position().z > 0)
+   {
+       
+    agentPath.push_back(Point(10,0,37.7));
+    agentPath.push_back(Point(-2,0,37.7));
+    agentPath.push_back(Point(-2,0,33.7));
+    agentPath.push_back(Point(-2,0,30.5));
+    agentPath.push_back(Point(-2,0,27));
+    agentPath.push_back(Point(-2,0,23.7));
+    agentPath.push_back(Point(-2,0,20.5));
+    agentPath.push_back(Point(-2,0,16.5));
+    agentPath.push_back(Point(-2,0,13.6));
+    agentPath.push_back(Point(-2,0,10.4));
+    agentPath.push_back(Point(-2,0,6.7));
+    agentPath.push_back(Point(-2,0,3.5));
+    agentPath.push_back(Point(-2,0,-.2));
+    agentPath.push_back(Point(-2,0,-3.5));
+    std::reverse(agentPath.begin(),agentPath.end()); 
+   }
+   else
+   {
+    agentPath.push_back(Point(-2,0,-.2));
+    agentPath.push_back(Point(-2,0,-3.5));
+    agentPath.push_back(Point(-2,0,-6.7));
+    agentPath.push_back(Point(-2,0,-10.4));
+    agentPath.push_back(Point(-2,0,-14.1));
+    agentPath.push_back(Point(-2,0,-16.8));
+    agentPath.push_back(Point(-2,0,-20.5));
+    agentPath.push_back(Point(-2,0,-24.2));
+    agentPath.push_back(Point(-2,0,-27.5));
+    agentPath.push_back(Point(-2,0,-31));
+    agentPath.push_back(Point(-2,0,-34.2));
+    agentPath.push_back(Point(-2,0,-38));
+    agentPath.push_back(Point(10,0,-38));
+   }
+    
+    for  (int i=0; i <  agentPath.size(); i++)
+	{
+		_midTermPath.push_back(agentPath.at(i));
+		if ((i % FURTHEST_LOCAL_TARGET_DISTANCE) == 0)
+		{
+			_waypoints.push_back(agentPath.at(i));
+		}
+	}
+	if(agentPath.size()>0)
+	{
+		for(int i = 1; i<agentPath.size(); ++i)
+		{
+			Util::DrawLib::drawLine(agentPath[i-1], agentPath[i], gYellow);
+		}
+		//Util::DrawLib::drawCircle(__path[__path.size()-1], Util::Color(0.0f, 1.0f, 0.0f));
+	}
+
+	return true;
+    
+}
+
+bool SocialForcesAgent::hardCodePathIngress()
+{
+    std::vector<Util::Point> agentPath;
+    
+   if(_goalQueue.front().targetLocation.z > 0)
+   {
+       
+    agentPath.push_back(Point(10,0,37.7));
+    agentPath.push_back(Point(-2,0,37.7));
+    agentPath.push_back(Point(-2,0,33.7));
+    agentPath.push_back(Point(-2,0,30.5));
+    agentPath.push_back(Point(-2,0,27));
+    agentPath.push_back(Point(-2,0,23.7));
+    agentPath.push_back(Point(-2,0,20.5));
+    agentPath.push_back(Point(-2,0,16.5));
+    agentPath.push_back(Point(-2,0,13.6));
+    agentPath.push_back(Point(-2,0,10.4));
+    agentPath.push_back(Point(-2,0,6.7));
+    agentPath.push_back(Point(-2,0,3.5));
+    agentPath.push_back(Point(-2,0,-.2));
+    //agentPath.push_back(Point(-2,0,-3.5));
+    //std::reverse(agentPath.begin(),agentPath.end()); 
+   }
+   else
+   {
+    agentPath.push_back(_goalQueue.front().targetLocation);
+    agentPath.push_back(Point(-2,0,-.2));
+    agentPath.push_back(Point(-2,0,-3.5));
+    agentPath.push_back(Point(-2,0,-6.7));
+    agentPath.push_back(Point(-2,0,-10.4));
+    agentPath.push_back(Point(-2,0,-14.1));
+    agentPath.push_back(Point(-2,0,-16.8));
+    agentPath.push_back(Point(-2,0,-20.5));
+    agentPath.push_back(Point(-2,0,-24.2));
+    agentPath.push_back(Point(-2,0,-27.5));
+    agentPath.push_back(Point(-3.4,0,-31));
+    agentPath.push_back(Point(-2,0,-34.2));
+    agentPath.push_back(Point(-2,0,-38));
+    agentPath.push_back(Point(10,0,-38));
+    std::reverse(agentPath.begin(),agentPath.end()); 
+   }
+    
+    for  (int i=0; i <  agentPath.size(); i++)
+	{
+		_midTermPath.push_back(agentPath.at(i));
+		if ((i % FURTHEST_LOCAL_TARGET_DISTANCE) == 0)
+		{
+			_waypoints.push_back(agentPath.at(i));
+		}
+	}
+	if(agentPath.size()>0)
+	{
+		for(int i = 1; i<agentPath.size(); ++i)
+		{
+			Util::DrawLib::drawLine(agentPath[i-1], agentPath[i], gYellow);
+		}
+		//Util::DrawLib::drawCircle(__path[__path.size()-1], Util::Color(0.0f, 1.0f, 0.0f));
+	}
+
+	return true;
+    
+}
+
+
+
 bool SocialForcesAgent::runAStarPlanning()
 {
 	_midTermPath.clear();
@@ -870,6 +1005,7 @@ void SocialForcesAgent::draw()
 	// if the agent is selected, do some annotations just for demonstration
 	if (gEngine->isAgentSelected(this))
 	{
+                
 		Util::Ray ray;
 		ray.initWithUnitInterval(_position, _forward);
 		float t = 0.0f;
@@ -893,10 +1029,10 @@ void SocialForcesAgent::draw()
 					Point(this->currentGoal().targetRegion.xmax, 0.1, this->currentGoal().targetRegion.zmin));
 		}
 		int i;
-		for (i=0; ( _waypoints.size() > 1 ) && (i < (_waypoints.size() - 1)); i++)
+		for (i=0; ( _midTermPath.size() > 1 ) && (i < (_midTermPath.size() - 1)); i++)
 		{
-			DrawLib::drawLine(_waypoints.at(i), _waypoints.at(i+1), gYellow);
-			DrawLib::drawStar(_waypoints.at(i), Util::Vector(1,0,0), 0.34f, gBlue);
+			DrawLib::drawLine(_midTermPath.at(i), _midTermPath.at(i+1), gYellow);
+			DrawLib::drawStar(_midTermPath.at(i), Util::Vector(1,0,0), 0.34f, gBlue);
 		}
 		// DrawLib::drawStar(_waypoints.at(i), Util::Vector(1,0,0), 0.34f, gBlue);
 	}
@@ -906,6 +1042,31 @@ void SocialForcesAgent::draw()
 	if (_goalQueue.front().goalType == SteerLib::GOAL_TYPE_SEEK_STATIC_TARGET) {
 		Util::DrawLib::drawFlag(_goalQueue.front().targetLocation);
 	}
+	Util::DrawLib::drawFlag(Point(10,0,37.7));
+	Util::DrawLib::drawFlag(Point(-2,0,37.7));
+	Util::DrawLib::drawFlag(Point(-2,0,33.7));
+	Util::DrawLib::drawFlag(Point(-2,0,30.5));
+	Util::DrawLib::drawFlag(Point(-2,0,27));
+	Util::DrawLib::drawFlag(Point(-2,0,23.7));
+	Util::DrawLib::drawFlag(Point(-2,0,20.5));
+	Util::DrawLib::drawFlag(Point(-2,0,16.5));
+	Util::DrawLib::drawFlag(Point(-2,0,13.6));
+	Util::DrawLib::drawFlag(Point(-2,0,10.4));
+	Util::DrawLib::drawFlag(Point(-2,0,6.7));
+	Util::DrawLib::drawFlag(Point(-2,0,3.5));
+	Util::DrawLib::drawFlag(Point(-2,0,-.2));
+	Util::DrawLib::drawFlag(Point(-2,0,-3.5));
+	Util::DrawLib::drawFlag(Point(-2,0,-6.7));
+	Util::DrawLib::drawFlag(Point(-2,0,-10.4));
+	Util::DrawLib::drawFlag(Point(-2,0,-14.1));
+	Util::DrawLib::drawFlag(Point(-2,0,-16.8));
+	Util::DrawLib::drawFlag(Point(-2,0,-20.5));
+	Util::DrawLib::drawFlag(Point(-2,0,-24.2));
+	Util::DrawLib::drawFlag(Point(-2,0,-27.5));
+	Util::DrawLib::drawFlag(Point(-3.4,0,-31));
+	Util::DrawLib::drawFlag(Point(-2,0,-34.2));
+        Util::DrawLib::drawFlag(Point(-2,0,-38));
+        Util::DrawLib::drawFlag(Point(10,0,-38));
 
 #ifdef DRAW_COLLISIONS
 	std::set<SteerLib::SpatialDatabaseItemPtr> _neighbors;
