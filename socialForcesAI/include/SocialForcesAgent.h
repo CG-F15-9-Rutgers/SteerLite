@@ -110,6 +110,7 @@ class SocialForcesAgent : public SteerLib::AgentInterface
     private:
         bool runLongTermPlanning2();
         bool runLongTermPlanning();
+        bool runAStarPlanning();
         bool reachedCurrentWaypoint();
         void updateMidTermPath();
         bool hasLineOfSightTo(Util::Point point);

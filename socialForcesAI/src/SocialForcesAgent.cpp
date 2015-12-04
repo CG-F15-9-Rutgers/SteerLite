@@ -165,9 +165,15 @@ void SocialForcesAgent::reset(const SteerLib::AgentInitialConditions & initialCo
 
 	//computePlan();
 	//std::cout << initialConditions.goals.size() << "\n";
-
+	if (PathOfTestCase.find("maze") != std::string::npos || PathOfTestCase.find("office-complex") != std::string::npos ) 
+	{
+		
+		runAStarPlanning();
+	}
+	else
+	{
 	runLongTermPlanning();
-
+	}
 	// std::cout << "first waypoint: " << _waypoints.front() << " agents position: " << position() << std::endl;
 	/*
 	 * Must make sure that _waypoints.front() != position(). If they are equal the agent will crash.
@@ -210,48 +216,6 @@ void SocialForcesAgent::reset(const SteerLib::AgentInitialConditions & initialCo
 	assert(_forward.length()!=0.0f);
 	assert(_goalQueue.size() != 0);
 	assert(_radius != 0.0f);
-}
-
-void SocialForcesAgent::computePlan()
-{
-	std::cout<<"\nComputing agent plan ";
-	Util::Point global_goal = _goalQueue.front().targetLocation;
-	std::vector<Util::Point> agentPath;
-	Util::Point pos =  position();
-	if(astar.computePath(agentPath,pos,_goalQueue.front().targetLocation,gSpatialDatabase))
-	{
-		//std::cout << agentPath.size() << "\n";
-		
-		while(!_goalQueue.empty())
-			_goalQueue.pop();
-		
-		for(int i=0;i<agentPath.size();++i)
-		{
-			SteerLib::AgentGoalInfo goal_path_pt;
-			goal_path_pt.targetLocation = agentPath[i];
-			_goalQueue.push(goal_path_pt);
-		}
-		SteerLib::AgentGoalInfo goal_path_pt;
-		goal_path_pt.targetLocation = global_goal;
-		_goalQueue.push(goal_path_pt);
-		//std::cout << agentPath.size() << "\n";
-	if(agentPath.size()>0)
-	{
-		for(int i = 1; i<agentPath.size(); ++i)
-		{
-			Util::DrawLib::drawLine(agentPath[i-1], agentPath[i], Util::Color(1.0f, 0.0f, 0.0f), 2);
-		}
-		//Util::DrawLib::drawCircle(__path[__path.size()-1], Util::Color(0.0f, 1.0f, 0.0f));
-	}
-
-	}
-	// else
-	// {
-	// 	for(int i = 0;i<20;++i)
-	// 		_goalQueue.push(_goalQueue.front());
-	// }
-
-
 }
 
 
@@ -791,6 +755,42 @@ void SocialForcesAgent::updateLocalTarget()
  * finds a path to the current goal
  * puts that path in midTermPath
  */
+bool SocialForcesAgent::runAStarPlanning()
+{
+	_midTermPath.clear();
+	//==========================================================================
+
+	// run the main a-star search here
+	std::vector<Util::Point> agentPath;
+	Util::Point pos =  position();
+
+	if(!astar.computePath(agentPath,pos,_goalQueue.front().targetLocation,gSpatialDatabase))
+	{
+		return false;
+	}
+
+	for  (int i=1; i <  agentPath.size(); i++)
+	{
+		_midTermPath.push_back(agentPath.at(i));
+		if ((i % FURTHEST_LOCAL_TARGET_DISTANCE) == 0)
+		{
+			_waypoints.push_back(agentPath.at(i));
+		}
+	}
+	if(agentPath.size()>0)
+	{
+		for(int i = 1; i<agentPath.size(); ++i)
+		{
+			Util::DrawLib::drawLine(agentPath[i-1], agentPath[i], Util::Color(1.0f, 0.0f, 0.0f), 2);
+		}
+		//Util::DrawLib::drawCircle(__path[__path.size()-1], Util::Color(0.0f, 1.0f, 0.0f));
+	}
+
+	return true;
+	
+	
+}
+
 bool SocialForcesAgent::runLongTermPlanning()
 {
 	_midTermPath.clear();
@@ -800,9 +800,8 @@ bool SocialForcesAgent::runLongTermPlanning()
 	std::vector<Util::Point> agentPath;
 	Util::Point pos =  position();
 
-	//if ( !gSpatialDatabase->findPath(pos, _goalQueue.front().targetLocation,
-	//		agentPath, (unsigned int) 50000))
-	if(!astar.computePath(agentPath,pos,_goalQueue.front().targetLocation,gSpatialDatabase))
+	if ( !gSpatialDatabase->findPath(pos, _goalQueue.front().targetLocation,
+			agentPath, (unsigned int) 50000))
 	{
 		return false;
 	}
