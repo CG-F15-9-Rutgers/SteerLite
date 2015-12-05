@@ -113,6 +113,7 @@ class SocialForcesAgent : public SteerLib::AgentInterface
         bool runAStarPlanning();
         bool hardCodePathEgress();
         bool hardCodePathIngress();
+        bool hardCodePathVortex();
         bool reachedCurrentWaypoint();
         void updateMidTermPath();
         bool hasLineOfSightTo(Util::Point point);

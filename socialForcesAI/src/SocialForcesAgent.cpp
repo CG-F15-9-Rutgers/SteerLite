@@ -24,7 +24,7 @@
 
 
 #define AGENT_MASS 1.0f
-
+float DIVIDE_GOAL = 5.0f;
 
 using namespace Util;
 using namespace SocialForcesGlobals;
@@ -178,9 +178,16 @@ void SocialForcesAgent::reset(const SteerLib::AgentInitialConditions & initialCo
         {
             hardCodePathIngress();   
         }
+        else if(PathOfTestCase.find("rounded-roundabout") != std::string::npos)
+        {
+            DIVIDE_GOAL = 2.0f;
+            hardCodePathVortex();
+        }
 	else
 	{
 	runLongTermPlanning();
+            //hardCodePathVortex();
+            //runAStarPlanning();
             
 	}
 	// std::cout << "first waypoint: " << _waypoints.front() << " agents position: " << position() << std::endl;
@@ -312,7 +319,7 @@ Vector SocialForcesAgent::calcGoalForce(Vector _goalDirection, float _dt)
     //Util::Vector prefForce = ((_goalDirection*PERFERED_SPEED - velocity()) / _dt);
    // Util::Vector prefForce = (((_goalDirection * PERFERED_SPEED) - velocity()) / (_SocialForcesParams.sf_acceleration/_dt)) + velocity();
   //Util::Vector goalForce = (_goalDirection * PERFERED_SPEED);
-  Util::Vector goalForce = (((_goalDirection * PREFERED_SPEED) - velocity()) / _dt)/5;
+  Util::Vector goalForce = (((_goalDirection * PREFERED_SPEED) - velocity()) / _dt)/DIVIDE_GOAL;
   return goalForce;
     
 }
@@ -764,6 +771,236 @@ void SocialForcesAgent::updateLocalTarget()
  * finds a path to the current goal
  * puts that path in midTermPath
  */
+bool SocialForcesAgent::hardCodePathVortex()
+{
+    std::vector<Util::Point> agentPath;
+    if(position().z > 10) //top
+    {
+         //if(!astar.computePath(agentPath,position(),Point(9,0,4),gSpatialDatabase))
+         //{
+	//	return false;
+         //}
+         
+         if(_goalQueue.front().targetLocation.z < -10)
+         {
+             SteerLib::AgentGoalInfo goalPoint =_goalQueue.front();
+             _goalQueue.pop();
+             SteerLib::AgentGoalInfo newGoal;
+             SteerLib::AgentGoalInfo newGoal1;
+             SteerLib::AgentGoalInfo newGoal2;
+             newGoal.targetLocation = Point(9,0,4);
+             newGoal1.targetLocation = Point(9,0,-6);
+             _goalQueue.push(newGoal);
+             _goalQueue.push(newGoal1);
+             _goalQueue.push(goalPoint);
+             runLongTermPlanning();
+             return true;
+             //newGoal2.targetLocation = Point(9,0,4);
+            // _goalQueue.insert(_goalQueue.end(),agentPath.begin(),agentPath.end());
+            // agentPath.push_back(Point(9,0,4));
+            //  std::vector<Util::Point> agentPath1;
+            // astar.computePath(agentPath1,Point(9,0,4),Point(9,0,-6),gSpatialDatabase);
+            // agentPath.insert(agentPath.end(), agentPath1.begin(), agentPath1.end());
+            //_goalQueue.insert(_goalQueue.end(),agentPath1.begin(),agentPath1.end());
+             
+             //agentPath.push_back(Point(9,0,-6));
+             
+         }
+         /*else if(_goalQueue.front().targetLocation.x < -10)
+         {
+             SteerLib::AgentGoalInfo goalPoint =_goalQueue.front();
+             _goalQueue.pop();
+             SteerLib::AgentGoalInfo newGoal;
+             SteerLib::AgentGoalInfo newGoal1;
+             SteerLib::AgentGoalInfo newGoal2;
+             newGoal.targetLocation = Point(9,0,4);
+             newGoal1.targetLocation = Point(9,0,-6);
+             newGoal2.targetLocation = Point(-8,0,-6);
+             _goalQueue.push(newGoal);
+             _goalQueue.push(newGoal1);
+             _goalQueue.push(newGoal2);
+             _goalQueue.push(goalPoint);
+             runLongTermPlanning();
+             return true;
+             
+             
+         }
+        */
+    }
+    else if(position().x > 10) //left 
+    {
+        //if(!astar.computePath(agentPath,position(),Point(6,0,-6),gSpatialDatabase))
+         //{
+	//	return false;
+         //}
+         
+         if(_goalQueue.front().targetLocation.x < -10)
+         {
+             SteerLib::AgentGoalInfo goalPoint =_goalQueue.front();
+             _goalQueue.pop();
+             SteerLib::AgentGoalInfo newGoal;
+             SteerLib::AgentGoalInfo newGoal1;
+             SteerLib::AgentGoalInfo newGoal2;
+             newGoal.targetLocation = Point(6,0,-6);
+             newGoal1.targetLocation = Point(-8,0,-6);
+             _goalQueue.push(newGoal);
+             _goalQueue.push(newGoal1);
+             _goalQueue.push(goalPoint);
+             runLongTermPlanning();
+             return true;
+             
+             
+         }
+         /*else if(_goalQueue.front().targetLocation.z > 10)
+         {
+             
+             SteerLib::AgentGoalInfo goalPoint =_goalQueue.front();
+             _goalQueue.pop();
+             SteerLib::AgentGoalInfo newGoal;
+             SteerLib::AgentGoalInfo newGoal1;
+             SteerLib::AgentGoalInfo newGoal2;
+             newGoal.targetLocation = Point(6,0,-6);
+             newGoal1.targetLocation = Point(-8,0,-6);
+             newGoal2.targetLocation = Point(-8,0,4);
+             _goalQueue.push(newGoal);
+             _goalQueue.push(newGoal1);
+             _goalQueue.push(newGoal2);
+             _goalQueue.push(goalPoint);
+             runLongTermPlanning();
+             return true;
+          
+             
+         }
+         */
+        
+    }
+    else if(position().x < -10)
+    {
+        //if(!astar.computePath(agentPath,position(),Point(-8,0,4),gSpatialDatabase))
+        // {
+	//	return false;
+        // }
+         
+         if(_goalQueue.front().targetLocation.x > 10)
+         {
+              SteerLib::AgentGoalInfo goalPoint =_goalQueue.front();
+             _goalQueue.pop();
+             SteerLib::AgentGoalInfo newGoal;
+             SteerLib::AgentGoalInfo newGoal1;
+             SteerLib::AgentGoalInfo newGoal2;
+             newGoal.targetLocation = Point(-8,0,4);
+             newGoal1.targetLocation = Point(6,0,4);
+             _goalQueue.push(newGoal);
+             _goalQueue.push(newGoal1);
+             _goalQueue.push(goalPoint);
+             runLongTermPlanning();
+             return true;
+             
+             
+         }
+         /*else if(_goalQueue.front().targetLocation.z < -10)
+         {
+             SteerLib::AgentGoalInfo goalPoint =_goalQueue.front();
+             _goalQueue.pop();
+             SteerLib::AgentGoalInfo newGoal;
+             SteerLib::AgentGoalInfo newGoal1;
+             SteerLib::AgentGoalInfo newGoal2;
+             newGoal.targetLocation = Point(-8,0,4);
+             newGoal1.targetLocation = Point(6,0,4);
+             newGoal2.targetLocation = Point(6,0,-6);
+             _goalQueue.push(newGoal);
+             _goalQueue.push(newGoal1);
+             _goalQueue.push(newGoal2);
+             _goalQueue.push(goalPoint);
+             runLongTermPlanning();
+             return true;
+             
+             
+         }
+         */
+        
+    }
+    else //(position.z < -10)
+    {
+         //if(!astar.computePath(agentPath,position(),Point(-8,0,-6),gSpatialDatabase))
+        // {
+	//	return false;
+         //}
+         
+         if(_goalQueue.front().targetLocation.z > 10)
+         {
+              SteerLib::AgentGoalInfo goalPoint =_goalQueue.front();
+             _goalQueue.pop();
+             SteerLib::AgentGoalInfo newGoal;
+             SteerLib::AgentGoalInfo newGoal1;
+             SteerLib::AgentGoalInfo newGoal2;
+             newGoal.targetLocation = Point(-8,0,-6);
+             newGoal1.targetLocation = Point(-8,0,4);
+             _goalQueue.push(newGoal);
+             _goalQueue.push(newGoal1);
+             _goalQueue.push(goalPoint);
+             runLongTermPlanning();
+             return true;
+             
+             
+         }
+         /*else if(_goalQueue.front().targetLocation.x > 10)
+         {
+             SteerLib::AgentGoalInfo goalPoint =_goalQueue.front();
+             _goalQueue.pop();
+             SteerLib::AgentGoalInfo newGoal;
+             SteerLib::AgentGoalInfo newGoal1;
+             SteerLib::AgentGoalInfo newGoal2;
+             newGoal.targetLocation = Point(-8,0,-6);
+             newGoal1.targetLocation = Point(-8,0,4);
+             newGoal2.targetLocation = Point(6,0,4);
+             _goalQueue.push(newGoal);
+             _goalQueue.push(newGoal1);
+             _goalQueue.push(newGoal2);
+             _goalQueue.push(goalPoint);
+             runLongTermPlanning();
+             return true;
+             
+             
+             
+         }
+        */
+        
+    }
+    
+    //if(!astar.computePath(agentPath,position(),Point(6,0,4),gSpatialDatabase))
+     //{
+//		return false;
+    // }       
+    //agentPath.push_back(Point(6,0,4));
+    //agentPath.push_back(Point(-8,0,4));
+    //agentPath.push_back(Point(-8,0,-6));
+    //agentPath.push_back(Point(6,0,-6));
+    
+    
+    for  (int i=0; i <  agentPath.size(); i++)
+	{
+		_midTermPath.push_back(agentPath.at(i));
+		if ((i % FURTHEST_LOCAL_TARGET_DISTANCE) == 0)
+		{
+			_waypoints.push_back(agentPath.at(i));
+		}
+	}
+	if(agentPath.size()>0)
+	{
+		for(int i = 1; i<agentPath.size(); ++i)
+		{
+			Util::DrawLib::drawLine(agentPath[i-1], agentPath[i], gYellow);
+		}
+		//Util::DrawLib::drawCircle(__path[__path.size()-1], Util::Color(0.0f, 1.0f, 0.0f));
+	}
+
+	return true;
+    
+    
+}
+
+
 bool SocialForcesAgent::hardCodePathEgress()
 {
     std::vector<Util::Point> agentPath;
@@ -1042,31 +1279,11 @@ void SocialForcesAgent::draw()
 	if (_goalQueue.front().goalType == SteerLib::GOAL_TYPE_SEEK_STATIC_TARGET) {
 		Util::DrawLib::drawFlag(_goalQueue.front().targetLocation);
 	}
-	Util::DrawLib::drawFlag(Point(10,0,37.7));
-	Util::DrawLib::drawFlag(Point(-2,0,37.7));
-	Util::DrawLib::drawFlag(Point(-2,0,33.7));
-	Util::DrawLib::drawFlag(Point(-2,0,30.5));
-	Util::DrawLib::drawFlag(Point(-2,0,27));
-	Util::DrawLib::drawFlag(Point(-2,0,23.7));
-	Util::DrawLib::drawFlag(Point(-2,0,20.5));
-	Util::DrawLib::drawFlag(Point(-2,0,16.5));
-	Util::DrawLib::drawFlag(Point(-2,0,13.6));
-	Util::DrawLib::drawFlag(Point(-2,0,10.4));
-	Util::DrawLib::drawFlag(Point(-2,0,6.7));
-	Util::DrawLib::drawFlag(Point(-2,0,3.5));
-	Util::DrawLib::drawFlag(Point(-2,0,-.2));
-	Util::DrawLib::drawFlag(Point(-2,0,-3.5));
-	Util::DrawLib::drawFlag(Point(-2,0,-6.7));
-	Util::DrawLib::drawFlag(Point(-2,0,-10.4));
-	Util::DrawLib::drawFlag(Point(-2,0,-14.1));
-	Util::DrawLib::drawFlag(Point(-2,0,-16.8));
-	Util::DrawLib::drawFlag(Point(-2,0,-20.5));
-	Util::DrawLib::drawFlag(Point(-2,0,-24.2));
-	Util::DrawLib::drawFlag(Point(-2,0,-27.5));
-	Util::DrawLib::drawFlag(Point(-3.4,0,-31));
-	Util::DrawLib::drawFlag(Point(-2,0,-34.2));
-        Util::DrawLib::drawFlag(Point(-2,0,-38));
-        Util::DrawLib::drawFlag(Point(10,0,-38));
+	Util::DrawLib::drawFlag(Point(6,0,4));
+        Util::DrawLib::drawFlag(Point(-8,0,4));
+        Util::DrawLib::drawFlag(Point(-8,0,-6));
+        Util::DrawLib::drawFlag(Point(6,0,-6));
+	
 
 #ifdef DRAW_COLLISIONS
 	std::set<SteerLib::SpatialDatabaseItemPtr> _neighbors;
