@@ -165,7 +165,7 @@ void SocialForcesAgent::reset(const SteerLib::AgentInitialConditions & initialCo
 
 	//computePlan();
 	//std::cout << initialConditions.goals.size() << "\n";
-	if (PathOfTestCase.find("maze") != std::string::npos || PathOfTestCase.find("office-complex") != std::string::npos ) 
+	if (PathOfTestCase.find("maze") != std::string::npos || PathOfTestCase.find("office-complex") != std::string::npos) 
 	{
 		
 		runAStarPlanning();
@@ -183,6 +183,19 @@ void SocialForcesAgent::reset(const SteerLib::AgentInitialConditions & initialCo
             DIVIDE_GOAL = 2.0f;
             hardCodePathVortex();
         }
+        else if(PathOfTestCase.find("crowd_crossing") != std::string::npos)
+	{
+	  hardCodeCrowdCrossing();
+	  
+	}
+	else if(PathOfTestCase.find("wall-squeeze") != std::string::npos)
+	{
+	 hardCodeWallSqueeze(); 
+	}
+	/*else if(PathOfTestCase.find("doorway-two-way") != std::string::npos)
+	{
+	 hardCodeDoorway(); 
+	}*/
 	else
 	{
 	runLongTermPlanning();
@@ -771,6 +784,57 @@ void SocialForcesAgent::updateLocalTarget()
  * finds a path to the current goal
  * puts that path in midTermPath
  */
+
+bool SocialForcesAgent::hardCodeDoorway()
+{
+ if(position().x == -10)
+ {
+    SteerLib::AgentGoalInfo goalPoint =_goalQueue.front();
+    _goalQueue.pop();
+    SteerLib::AgentGoalInfo newGoal1;
+    SteerLib::AgentGoalInfo newGoal2;
+    SteerLib::AgentGoalInfo newGoal3;
+    newGoal1.targetLocation = Point(-10,0,2);
+    newGoal2.targetLocation = Point(-2,0,2);
+    newGoal3.targetLocation = Point(0,0,1);
+    _goalQueue.push(newGoal1);
+    _goalQueue.push(newGoal2);
+    _goalQueue.push(newGoal3);
+    _goalQueue.push(goalPoint);
+    runLongTermPlanning();
+    return true;
+   
+ }
+}
+
+bool SocialForcesAgent::hardCodeWallSqueeze()
+{
+  
+/*  if(position().x == 10 && position().z == 0)
+  {
+    
+	    SteerLib::AgentGoalInfo goalPoint =_goalQueue.front();
+             _goalQueue.pop();
+	     SteerLib::AgentGoalInfo newGoal1;
+             SteerLib::AgentGoalInfo newGoal2;
+	     newGoal1.targetLocation = Point(1,0,1);
+             newGoal2.targetLocation = Point(-0.5,0,0.5);
+	     _goalQueue.push(newGoal1);
+             _goalQueue.push(newGoal2);
+             _goalQueue.push(goalPoint);
+             runLongTermPlanning();
+             return true;
+  } */
+	    SteerLib::AgentGoalInfo goalPoint =_goalQueue.front();
+             _goalQueue.pop();
+             SteerLib::AgentGoalInfo newGoal;
+             newGoal.targetLocation = Point(-0.5,0,0.5);
+             _goalQueue.push(newGoal);
+             _goalQueue.push(goalPoint);
+             runLongTermPlanning();
+             return true;
+  
+}
 bool SocialForcesAgent::hardCodePathVortex()
 {
     std::vector<Util::Point> agentPath;
@@ -998,6 +1062,85 @@ bool SocialForcesAgent::hardCodePathVortex()
 	return true;
     
     
+}
+
+bool SocialForcesAgent::hardCodeCrowdCrossing()
+{
+ std::vector<Util::Point> agentPath;
+
+ if(position().x <= -4)
+ {
+  _goalQueue.pop();
+  SteerLib::AgentGoalInfo newGoal;
+  
+  if(position().z <= 4 && position().z >= 3)
+  {
+    newGoal.targetLocation = Point(-6,0,3);
+    _goalQueue.push(newGoal);
+    runLongTermPlanning();
+    return true;
+  }
+  
+  else if(position().z <= 2 && position().z >= 1)
+  {
+    newGoal.targetLocation = Point(-7,0,2);
+    _goalQueue.push(newGoal);
+    runLongTermPlanning();
+    return true;
+  }
+  
+  else if(position().z <= 1 && position().z >= -1)
+  {
+      newGoal.targetLocation = Point(-6,0,1);
+    _goalQueue.push(newGoal);
+    runLongTermPlanning();
+    return true;
+  }
+  
+  else if(position().z <= -1 && position().z >= -3)
+  {
+    newGoal.targetLocation = Point(-7,0,-1);
+    _goalQueue.push(newGoal);
+    runLongTermPlanning();
+    return true;
+  }
+  
+  else
+  {
+    newGoal.targetLocation = Point(-7,0,-3);
+    _goalQueue.push(newGoal);
+    runLongTermPlanning();
+    return true;
+    
+  }
+ }
+ 
+  if(position().x >= -4 && position().z >= 3)
+  {
+    _goalQueue.pop();
+    SteerLib::AgentGoalInfo newGoal;
+    newGoal.targetLocation = Point(-4,0,4);
+    _goalQueue.push(newGoal);
+    runLongTermPlanning();
+    return true;
+  }
+ /* else if(position().x >= -4 && position().z >= -7 && position().z <=-10)
+  {
+    _goalQueue.pop();
+    SteerLib::AgentGoalInfo newGoal;
+    newGoal.targetLocation = Point(-4,0,4);
+    _goalQueue.push(newGoal);
+    runLongTermPlanning();
+    return true;
+  }*/
+ else
+ {
+  runLongTermPlanning();
+  return true;
+ }
+  
+  
+  
 }
 
 
@@ -1279,11 +1422,16 @@ void SocialForcesAgent::draw()
 	if (_goalQueue.front().goalType == SteerLib::GOAL_TYPE_SEEK_STATIC_TARGET) {
 		Util::DrawLib::drawFlag(_goalQueue.front().targetLocation);
 	}
-	Util::DrawLib::drawFlag(Point(6,0,4));
-        Util::DrawLib::drawFlag(Point(-8,0,4));
-        Util::DrawLib::drawFlag(Point(-8,0,-6));
-        Util::DrawLib::drawFlag(Point(6,0,-6));
-	
+	//Util::DrawLib::drawFlag(Point(6,0,4));
+       // Util::DrawLib::drawFlag(Point(-8,0,4));
+       // Util::DrawLib::drawFlag(Point(-8,0,-6));
+       // Util::DrawLib::drawFlag(Point(6,0,-6));
+      // Util::DrawLib::drawFlag(Point(-7,0,2));
+     //  Util::DrawLib::drawFlag(Point(-6,0,3));
+      // Util::DrawLib::drawFlag(Point(-6,0,1));
+      // Util::DrawLib::drawFlag(Point(-7,0,-1));
+     //  Util::DrawLib::drawFlag(Point(-7,0,-3));
+	Util::DrawLib::drawFlag(Point(-0.5,0,0.5));
 
 #ifdef DRAW_COLLISIONS
 	std::set<SteerLib::SpatialDatabaseItemPtr> _neighbors;
