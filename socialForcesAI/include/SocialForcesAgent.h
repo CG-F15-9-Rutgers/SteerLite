@@ -114,6 +114,7 @@ class SocialForcesAgent : public SteerLib::AgentInterface
         bool hardCodePathEgress();
         bool hardCodePathIngress();
         bool hardCodePathVortex();
+        bool hardCodeBottleNeck();
         bool reachedCurrentWaypoint();
         void updateMidTermPath();
         bool hasLineOfSightTo(Util::Point point);
