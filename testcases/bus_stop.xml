@@ -1,0 +1,272 @@
+<SteerBenchTestCase xmlns="http://www.magix.ucla.edu/steerbench"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="http://www.magix.ucla.edu/steerbench 
+                                        TestCaseSchema.xsd">
+
+  <header>
+    <version>1.0</version>
+    <name>bus-stop</name>
+    <worldBounds>
+      <xmin>-30</xmin>
+      <xmax>50</xmax>
+      <ymin>0</ymin>
+      <ymax>0</ymax>
+      <zmin>-100</zmin>
+      <zmax>100</zmax>
+    </worldBounds>
+  </header>
+  
+  <suggestedCameraView>
+    <position> <x>40</x> <y>80</y> <z>100</z> </position>
+    <lookat> <x>20</x> <y>0</y> <z>40</z> </lookat>
+	<up> <x>0</x> <y>1</y> <z>0</z> </up>
+    <fovy>45</fovy>
+  </suggestedCameraView>
+  
+  <!-- Bus A - Front -->
+  <obstacle>
+    <xmin>-12</xmin>
+    <xmax>-2</xmax>
+    <ymin>0</ymin>
+    <ymax>1</ymax>
+    <zmin>-21</zmin>
+    <zmax>-20</zmax>
+  </obstacle>
+
+  <!-- Bus A - Rear -->
+  <obstacle>
+    <xmin>-12</xmin>
+    <xmax>-2</xmax>
+    <ymin>0</ymin>
+    <ymax>1</ymax>
+    <zmin>5</zmin>
+    <zmax>6</zmax>
+  </obstacle>
+
+  <!-- Bus A - Far Side -->
+  <obstacle>
+    <xmin>-12</xmin>
+    <xmax>-11</xmax>
+    <ymin>0</ymin>
+    <ymax>1</ymax>
+    <zmin>-20</zmin>
+    <zmax>5</zmax>
+  </obstacle>
+
+  <!-- Bus A - Close Side - Front -->
+  <obstacle>
+    <xmin>-3</xmin>
+    <xmax>-2</xmax>
+    <ymin>0</ymin>
+    <ymax>1</ymax>
+    <zmin>-20</zmin>
+    <zmax>-15</zmax>
+  </obstacle>
+
+  <!-- Bus A - Close Side - Mid -->
+  <obstacle>
+    <xmin>-3</xmin>
+    <xmax>-2</xmax>
+    <ymin>0</ymin>
+    <ymax>1</ymax>
+    <zmin>-12</zmin>
+    <zmax>-5</zmax>
+  </obstacle>
+
+  <!-- Bus A - Close Side - Rear -->
+  <obstacle>
+    <xmin>-3</xmin>
+    <xmax>-2</xmax>
+    <ymin>0</ymin>
+    <ymax>1</ymax>
+    <zmin>0</zmin>
+    <zmax>5</zmax>
+  </obstacle>
+
+  <!-- Bus B - Front -->
+  <obstacle>
+    <xmin>-12</xmin>
+    <xmax>-2</xmax>
+    <ymin>0</ymin>
+    <ymax>1</ymax>
+    <zmin>49</zmin>
+    <zmax>50</zmax>
+  </obstacle>
+
+  <!-- Bus B - Rear -->
+  <obstacle>
+    <xmin>-12</xmin>
+    <xmax>-2</xmax>
+    <ymin>0</ymin>
+    <ymax>1</ymax>
+    <zmin>90</zmin>
+    <zmax>91</zmax>
+  </obstacle>
+
+  <!-- Bus B - Far Side -->
+  <obstacle>
+    <xmin>-12</xmin>
+    <xmax>-11</xmax>
+    <ymin>0</ymin>
+    <ymax>1</ymax>
+    <zmin>50</zmin>
+    <zmax>90</zmax>
+  </obstacle>
+
+  <!-- Bus B - Close Side - Front -->
+  <obstacle>
+    <xmin>-3</xmin>
+    <xmax>-2</xmax>
+    <ymin>0</ymin>
+    <ymax>1</ymax>
+    <zmin>50</zmin>
+    <zmax>55</zmax>
+  </obstacle>
+
+  <!-- Bus B - Close Side - Front-Mid -->
+  <obstacle>
+    <xmin>-3</xmin>
+    <xmax>-2</xmax>
+    <ymin>0</ymin>
+    <ymax>1</ymax>
+    <zmin>58</zmin>
+    <zmax>65</zmax>
+  </obstacle>
+
+  <!-- Bus B - Close Side - Rear-Mid -->
+  <obstacle>
+    <xmin>-3</xmin>
+    <xmax>-2</xmax>
+    <ymin>0</ymin>
+    <ymax>1</ymax>
+    <zmin>70</zmin>
+    <zmax>80</zmax>
+  </obstacle>
+
+  <!-- Bus B - Close Side - Rear -->
+  <obstacle>
+    <xmin>-3</xmin>
+    <xmax>-2</xmax>
+    <ymin>0</ymin>
+    <ymax>1</ymax>
+    <zmin>85</zmin>
+    <zmax>90</zmax>
+  </obstacle>
+
+  <!-- Stop to A travelers -->
+  <agentRegion>
+    <numAgents>15</numAgents>
+    <regionBounds>
+      <xmin>13</xmin>
+      <xmax>35</xmax>
+      <ymin>0</ymin>
+      <ymax>0</ymax>
+      <zmin>-10</zmin>
+      <zmax>10</zmax>
+    </regionBounds>
+    <initialConditions>
+      <direction> <random>true</random> </direction>
+      <radius>0.5</radius>
+      <speed>0</speed>
+    </initialConditions>
+    <goalSequence>
+      <seekStaticTarget>
+        <targetLocation>
+          <x>-7</x>
+          <y>0</y>
+          <z>-3</z>
+		</targetLocation>
+        <desiredSpeed>1.3</desiredSpeed>
+        <timeDuration>1000.0</timeDuration>
+      </seekStaticTarget>
+    </goalSequence>
+  </agentRegion>
+
+  <!-- A to Stop travelers -->
+  <agentRegion>
+    <numAgents>20</numAgents>
+    <regionBounds>
+      <xmin>-10</xmin>
+      <xmax>-3</xmax>
+      <ymin>0</ymin>
+      <ymax>0</ymax>
+      <zmin>-15</zmin>
+      <zmax>-10</zmax>
+    </regionBounds>
+    <initialConditions>
+      <direction> <random>true</random> </direction>
+      <radius>0.5</radius>
+      <speed>0</speed>
+    </initialConditions>
+    <goalSequence>
+      <seekStaticTarget>
+        <targetLocation>
+          <x>20</x>
+          <y>0</y>
+          <z>0</z>
+		</targetLocation>
+        <desiredSpeed>1.3</desiredSpeed>
+        <timeDuration>1000.0</timeDuration>
+      </seekStaticTarget>
+    </goalSequence>
+  </agentRegion>
+
+  <!-- Stop to B travelers -->
+  <agentRegion>
+    <numAgents>150</numAgents>
+    <regionBounds>
+      <xmin>13</xmin>
+      <xmax>35</xmax>
+      <ymin>0</ymin>
+      <ymax>0</ymax>
+      <zmin>-10</zmin>
+      <zmax>10</zmax>
+    </regionBounds>
+    <initialConditions>
+      <direction> <random>true</random> </direction>
+      <radius>0.5</radius>
+      <speed>0</speed>
+    </initialConditions>
+    <goalSequence>
+      <seekStaticTarget>
+        <targetLocation>
+          <x>-1</x>
+          <y>0</y>
+          <z>83</z>
+		</targetLocation>
+        <desiredSpeed>1.3</desiredSpeed>
+        <timeDuration>1000.0</timeDuration>
+      </seekStaticTarget>
+    </goalSequence>
+  </agentRegion>
+
+  <!-- B to Stop travelers -->
+  <agentRegion>
+    <numAgents>80</numAgents>
+    <regionBounds>
+      <xmin>-10</xmin>
+      <xmax>-3</xmax>
+      <ymin>0</ymin>
+      <ymax>0</ymax>
+      <zmin>60</zmin>
+      <zmax>85</zmax>
+    </regionBounds>
+    <initialConditions>
+      <direction> <random>true</random> </direction>
+      <radius>0.5</radius>
+      <speed>0</speed>
+    </initialConditions>
+    <goalSequence>
+      <seekStaticTarget>
+        <targetLocation>
+          <x>20</x>
+          <y>0</y>
+          <z>0</z>
+		</targetLocation>
+        <desiredSpeed>1.3</desiredSpeed>
+        <timeDuration>1000.0</timeDuration>
+      </seekStaticTarget>
+    </goalSequence>
+  </agentRegion>
+
+</SteerBenchTestCase>
