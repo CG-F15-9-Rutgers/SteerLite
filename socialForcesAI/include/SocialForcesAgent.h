@@ -93,6 +93,7 @@ class SocialForcesAgent : public SteerLib::AgentInterface
         Util::Vector _newVelocity;
         Util::Color _color;
         float _radius;
+	int isBigAgent;
 
         std::queue<SteerLib::AgentGoalInfo> _goalQueue;
 
@@ -114,6 +115,13 @@ class SocialForcesAgent : public SteerLib::AgentInterface
         bool hardCodePathEgress();
         bool hardCodePathIngress();
         bool hardCodePathVortex();
+<<<<<<< HEAD
+=======
+        bool hardCodeCrowdCrossing();
+        bool hardCodeWallSqueeze();
+        bool hardCodeDoorway();
+        bool hardCodeDoubleSqueeze();
+>>>>>>> newCommmit
         bool hardCodeBottleNeck();
         bool reachedCurrentWaypoint();
         void updateMidTermPath();
