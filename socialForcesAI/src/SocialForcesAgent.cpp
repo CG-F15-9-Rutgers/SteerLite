@@ -164,7 +164,6 @@ void SocialForcesAgent::reset(const SteerLib::AgentInitialConditions & initialCo
 	}
 
 	//computePlan();
-	//std::cout << initialConditions.goals.size() << "\n";
 	if (PathOfTestCase.find("maze") != std::string::npos || PathOfTestCase.find("office-complex") != std::string::npos) 
 	{
 		
@@ -183,7 +182,7 @@ void SocialForcesAgent::reset(const SteerLib::AgentInitialConditions & initialCo
             DIVIDE_GOAL = 2.0f;
             hardCodePathVortex();
         }
-        else if(PathOfTestCase.find("crowd_crossing") != std::string::npos)
+       else if(PathOfTestCase.find("crowd_crossing") != std::string::npos)
 	{
 	  hardCodeCrowdCrossing();
 	  
@@ -196,12 +195,21 @@ void SocialForcesAgent::reset(const SteerLib::AgentInitialConditions & initialCo
 	{
 	 hardCodeDoorway(); 
 	}*/
-	else
+        else if(PathOfTestCase.find("bottleneck-squeeze") != std::string::npos)
+        {
+            hardCodeBottleNeck();
+        }
+        else if(PathOfTestCase.find("double-squeeze") != std::string::npos)
+        {
+            DIVIDE_GOAL = 1.0f;
+            hardCodeDoubleSqueeze();
+            //runLongTermPlanning();
+        }
+        else
 	{
-	runLongTermPlanning();
-            //hardCodePathVortex();
-            //runAStarPlanning();
-            
+	
+         runLongTermPlanning();
+                    
 	}
 	// std::cout << "first waypoint: " << _waypoints.front() << " agents position: " << position() << std::endl;
 	/*
@@ -784,6 +792,45 @@ void SocialForcesAgent::updateLocalTarget()
  * finds a path to the current goal
  * puts that path in midTermPath
  */
+bool SocialForcesAgent::hardCodeDoubleSqueeze()
+{
+    std::vector<Util::Point> agentPath;
+    
+  if(position().x <-7)
+  {
+      SteerLib::AgentGoalInfo goalPoint =_goalQueue.front();
+    _goalQueue.pop();
+    SteerLib::AgentGoalInfo newGoal1;
+    SteerLib::AgentGoalInfo newGoal2;
+    SteerLib::AgentGoalInfo newGoal3;
+    newGoal1.targetLocation = Point(1,0,1.2);
+    //newGoal2.targetLocation = Point(-7,0,1.2);
+    //_goalQueue.push(newGoal2);
+    _goalQueue.push(newGoal1);
+    _goalQueue.push(goalPoint);
+    runLongTermPlanning();
+    return true;
+ }
+  else
+  {    
+     SteerLib::AgentGoalInfo goalPoint =_goalQueue.front();
+    _goalQueue.pop();
+    SteerLib::AgentGoalInfo newGoal1;
+    SteerLib::AgentGoalInfo newGoal2;
+    SteerLib::AgentGoalInfo newGoal3;
+    newGoal1.targetLocation = Point(-1,0,-1.2);
+    //newGoal2.targetLocation = Point(7,0,-1.2);
+    //_goalQueue.push(newGoal2);
+    _goalQueue.push(newGoal1);
+    _goalQueue.push(goalPoint);
+    runLongTermPlanning();
+    return true;
+      
+  } 
+   
+      
+    
+}
 
 bool SocialForcesAgent::hardCodeDoorway()
 {
@@ -835,6 +882,65 @@ bool SocialForcesAgent::hardCodeWallSqueeze()
              return true;
   
 }
+
+bool SocialForcesAgent::hardCodeBottleNeck()
+{
+    
+    std::vector<Util::Point> agentPath;
+    
+    SteerLib::AgentGoalInfo goalPoint =_goalQueue.front();
+    _goalQueue.pop();
+    int x = position().x;
+    while(true)
+    {
+      if(x<60)
+      {
+            break;
+      }
+      SteerLib::AgentGoalInfo newGoal;
+      newGoal.targetLocation = Point(x,0,0);
+      _goalQueue.push(newGoal);
+      x = x -2;
+    }
+    _goalQueue.push(goalPoint);
+    
+    runLongTermPlanning();
+    return true;
+    
+   
+    //agentPath.push_back(Point(12,0,0));
+    //agentPath.push_back(Point(18,0,0));
+    //agentPath.push_back(Point(22,0,0));
+    //agentPath.push_back(Point(position().x,0,0));
+    //agentPath.push_back(Point(30,0,0));
+    //agentPath.push_back(Point(35,0,0));
+   
+    
+    /*for  (int i=0; i <  agentPath.size(); i++)
+	{
+		_midTermPath.push_back(agentPath.at(i));
+		if ((i % FURTHEST_LOCAL_TARGET_DISTANCE) == 0)
+		{
+			_waypoints.push_back(agentPath.at(i));
+		}
+	}
+	if(agentPath.size()>0)
+	{
+		for(int i = 1; i<agentPath.size(); ++i)
+		{
+			Util::DrawLib::drawLine(agentPath[i-1], agentPath[i], gYellow);
+		}
+		//Util::DrawLib::drawCircle(__path[__path.size()-1], Util::Color(0.0f, 1.0f, 0.0f));
+	}
+
+	return true;
+    
+    
+    */
+    
+    
+}
+
 bool SocialForcesAgent::hardCodePathVortex()
 {
     std::vector<Util::Point> agentPath;
@@ -1208,6 +1314,26 @@ bool SocialForcesAgent::hardCodePathEgress()
 bool SocialForcesAgent::hardCodePathIngress()
 {
     std::vector<Util::Point> agentPath;
+   if(_goalQueue.front().targetLocation == Point(-7.4,0,-30.8))
+    {
+          SteerLib::AgentGoalInfo goalPoint =_goalQueue.front();
+          _goalQueue.pop();
+          SteerLib::AgentGoalInfo newGoal;
+          SteerLib::AgentGoalInfo newGoal1;
+          SteerLib::AgentGoalInfo newGoal2;
+          newGoal.targetLocation = Point(10,0,-38);
+          newGoal1.targetLocation = Point(-2,0,-38);
+          newGoal2.targetLocation = Point(-2,0,-31);
+          _goalQueue.push(newGoal);
+          _goalQueue.push(newGoal1);
+          _goalQueue.push(newGoal2);
+          _goalQueue.push(goalPoint);
+          runLongTermPlanning();
+          return true;
+    
+        
+        
+    } 
     
    if(_goalQueue.front().targetLocation.z > 0)
    {
@@ -1240,10 +1366,11 @@ bool SocialForcesAgent::hardCodePathIngress()
     agentPath.push_back(Point(-2,0,-20.5));
     agentPath.push_back(Point(-2,0,-24.2));
     agentPath.push_back(Point(-2,0,-27.5));
-    agentPath.push_back(Point(-3.4,0,-31));
+    agentPath.push_back(Point(-2,0,-31));
     agentPath.push_back(Point(-2,0,-34.2));
     agentPath.push_back(Point(-2,0,-38));
     agentPath.push_back(Point(10,0,-38));
+    
     std::reverse(agentPath.begin(),agentPath.end()); 
    }
     
@@ -1305,6 +1432,10 @@ bool SocialForcesAgent::runAStarPlanning()
 	
 	
 }
+/**
+ * finds a path to the current goal
+ * puts that path in midTermPath
+ */
 
 bool SocialForcesAgent::runLongTermPlanning()
 {
@@ -1431,7 +1562,15 @@ void SocialForcesAgent::draw()
       // Util::DrawLib::drawFlag(Point(-6,0,1));
       // Util::DrawLib::drawFlag(Point(-7,0,-1));
      //  Util::DrawLib::drawFlag(Point(-7,0,-3));
-	Util::DrawLib::drawFlag(Point(-0.5,0,0.5));
+	Util::DrawLib::drawFlag(Point(-9,0,0.5));
+	Util::DrawLib::drawFlag(Point(9,0,-0.5));
+       // Util::DrawLib::drawFlag(Point(18,0,0));
+       // Util::DrawLib::drawFlag(Point(22,0,0));
+       // Util::DrawLib::drawFlag(Point(25,0,0));
+        //Util::DrawLib::drawFlag(Point(-8,0,4));
+        //Util::DrawLib::drawFlag(Point(-8,0,-6));
+        //Util::DrawLib::drawFlag(Point(6,0,-6));
+	
 
 #ifdef DRAW_COLLISIONS
 	std::set<SteerLib::SpatialDatabaseItemPtr> _neighbors;
